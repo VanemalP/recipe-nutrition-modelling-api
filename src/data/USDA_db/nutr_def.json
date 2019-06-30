@@ -1,0 +1,134 @@
+[
+ {
+   "Nutr_no": 203,
+   "Units": "g",
+   "Tagname": "PROCNT",
+   "NutrDesc": "Protein"
+ },
+ {
+   "Nutr_no": 204,
+   "Units": "g",
+   "Tagname": "FAT",
+   "NutrDesc": "Total lipid (fat)"
+ },
+ {
+   "Nutr_no": 205,
+   "Units": "g",
+   "Tagname": "CHOCDF",
+   "NutrDesc": "Carbohydrate, by difference"
+ },
+ {
+   "Nutr_no": 208,
+   "Units": "kcal",
+   "Tagname": "ENERC_KCAL",
+   "NutrDesc": "Energy"
+ },
+ {
+   "Nutr_no": 269,
+   "Units": "g",
+   "Tagname": "SUGAR",
+   "NutrDesc": "Sugars, total"
+ },
+ {
+   "Nutr_no": 291,
+   "Units": "g",
+   "Tagname": "FIBTG",
+   "NutrDesc": "Fiber, total dietary"
+ },
+ {
+   "Nutr_no": 301,
+   "Units": "mg",
+   "Tagname": "CA",
+   "NutrDesc": "Calcium, Ca"
+ },
+ {
+   "Nutr_no": 303,
+   "Units": "mg",
+   "Tagname": "FE",
+   "NutrDesc": "Iron, Fe"
+ },
+ {
+   "Nutr_no": 305,
+   "Units": "mg",
+   "Tagname": "P",
+   "NutrDesc": "Phosphorus, P"
+ },
+ {
+   "Nutr_no": 306,
+   "Units": "mg",
+   "Tagname": "K",
+   "NutrDesc": "Potassium, K"
+ },
+ {
+   "Nutr_no": 307,
+   "Units": "mg",
+   "Tagname": "NA",
+   "NutrDesc": "Sodium, Na"
+ },
+ {
+   "Nutr_no": 318,
+   "Units": "IU",
+   "Tagname": "VITA_IU",
+   "NutrDesc": "Vitamin A, IU"
+ },
+ {
+   "Nutr_no": 323,
+   "Units": "mg",
+   "Tagname": "TOCPHA",
+   "NutrDesc": "Vitamin E (alpha-tocopherol)"
+ },
+ {
+   "Nutr_no": 324,
+   "Units": "IU",
+   "Tagname": "VITD",
+   "NutrDesc": "Vitamin D"
+ },
+ {
+   "Nutr_no": 401,
+   "Units": "mg",
+   "Tagname": "VITC",
+   "NutrDesc": "Vitamin C, total ascorbic acid"
+ },
+ {
+   "Nutr_no": 418,
+   "Units": "µg",
+   "Tagname": "VITB12",
+   "NutrDesc": "Vitamin B-12"
+ },
+ {
+   "Nutr_no": 431,
+   "Units": "µg",
+   "Tagname": "FOLAC",
+   "NutrDesc": "Folic acid"
+ },
+ {
+   "Nutr_no": 601,
+   "Units": "mg",
+   "Tagname": "CHOLE",
+   "NutrDesc": "Cholesterol"
+ },
+ {
+   "Nutr_no": 605,
+   "Units": "g",
+   "Tagname": "FATRN",
+   "NutrDesc": "Fatty acids, total trans"
+ },
+ {
+   "Nutr_no": 606,
+   "Units": "g",
+   "Tagname": "FASAT",
+   "NutrDesc": "Fatty acids, total saturated"
+ },
+ {
+   "Nutr_no": 645,
+   "Units": "g",
+   "Tagname": "FAMS",
+   "NutrDesc": "Fatty acids, total monounsaturated"
+ },
+ {
+   "Nutr_no": 646,
+   "Units": "g",
+   "Tagname": "FAPU",
+   "NutrDesc": "Fatty acids, total polyunsaturated"
+ }
+]
