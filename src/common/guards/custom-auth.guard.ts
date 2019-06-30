@@ -18,8 +18,11 @@ export class AuthGuardWithBlackisting extends AuthGuard('jwt') implements CanAct
     }
     const request: Request = context.switchToHttp().getRequest();
     const token = request.headers.authorization;
-    const isTokenBlacklisted = await this.authService.isTokenBlacklisted(token);
+    if (!token) {
+      throw new UnauthorizedException();
+    }
 
+    const isTokenBlacklisted = await this.authService.isTokenBlacklisted(token);
     if (isTokenBlacklisted) {
       throw new UnauthorizedException();
     }
