@@ -1,0 +1,23 @@
+{
+   "type": "mysql",
+   "host": "localhost",
+   "port": 3306,
+   "username": "root",
+   "password": "root",
+   "database": "recipes_db",
+   "synchronize": false,
+   "logging": false,
+   "entities": [
+      "./src/data/entities/**/*.ts"
+   ],
+   "migrations": [
+      "./src/data/migration/**/*.ts"
+   ],
+   "subscribers": [
+      "./src/common/subscribers/*.subscriber.ts"
+   ],
+   "cli": {
+      "entitiesDir": "./src/data/entities",
+      "migrationsDir": "./src/data/migration"
+   }
+}
