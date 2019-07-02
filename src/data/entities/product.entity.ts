@@ -1,7 +1,8 @@
-import { RecipeProduct } from './recipe-product';
-import { Entity, PrimaryColumn, Column,  OneToMany, OneToOne, JoinColumn } from 'typeorm';
+import { Ingredient } from './ingredient.entity';
+import { Entity, PrimaryColumn, Column, OneToMany, OneToOne, JoinColumn, ManyToOne } from 'typeorm';
 import { Measure } from './measure.entity';
 import { Nutrition } from './nutrition.entity';
+import { FoodGroup } from './food-group.entity';
 
 /**
  * Product entity
@@ -21,8 +22,8 @@ export class Product {
   /**
    * Food group to which the product belongs
    */
-  @Column()
-  foodGroup: string;
+  @ManyToOne(type => FoodGroup, foodGroup => foodGroup.products, { eager: true })
+  foodGroup: FoodGroup;
   /**
    * Available measures of the product
    */
@@ -37,6 +38,6 @@ export class Product {
   /**
    * Recipe product
    */
-  @OneToMany(type => RecipeProduct, recipeProduct => recipeProduct.product)
-  recipeProducts: Promise<RecipeProduct[]>;
+  @OneToMany(type => Ingredient, ingredient => ingredient.product)
+  ingredients: Promise<Ingredient[]>;
 }

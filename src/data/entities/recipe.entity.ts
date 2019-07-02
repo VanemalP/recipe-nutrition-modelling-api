@@ -1,8 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, ManyToMany, OneToOne, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, ManyToMany, OneToOne, OneToMany, CreateDateColumn } from 'typeorm';
 
-import { RecipeProduct } from './recipe-product';
 import { User } from './user.entity';
 import { Nutrition } from './nutrition.entity';
+import { Subrecipe } from './subrecipe.entity';
+import { Ingredient } from './ingredient.entity';
+import { FoodGroup } from './food-group.entity';
 
 /**
  * Recipe entity
@@ -20,25 +22,45 @@ export class Recipe {
   @Column('nvarchar')
   title: string;
   /**
-   * Food group to which the product belongs
+   * Image url
    */
-  @Column('nvarchar')
-  foodGroup: string;
+  @Column()
+  imageURL: string;
+  /**
+   * Notes
+   */
+  @Column('longtext')
+  notes: string;
+  /**
+   * Created on
+   */
+  @CreateDateColumn()
+  Created: Date;
   /**
    * Author of the recipe
    */
   @ManyToOne(type => User, user => user.recipes)
   author: Promise<User>;
   /**
-   * Products in the recipe
+   * Food group to which the recipe belongs
    */
-  @OneToMany(type => RecipeProduct, recipeProduct => recipeProduct.recipes, { eager: true })
-  recipeProducts: RecipeProduct[];
+  @ManyToMany(type => FoodGroup, foodGroup => foodGroup.recipes, { eager: true })
+  foodGroups: FoodGroup[];
+  /**
+   * Ingredients in the recipe
+   */
+  @OneToMany(type => Ingredient, ingredient => ingredient.recipe, { eager: true })
+  ingredients: Ingredient[];
   /**
    * Subrecipes in the recipe
    */
-  @ManyToMany(type => Recipe, recipe => recipe.subrecipes)
-  subrecipes: Promise<Recipe[]>;
+  @OneToMany(type => Subrecipe, subrecipe => subrecipe.recipe)
+  subrecipes: Promise<Subrecipe[]>;
+  /**
+   * Derived recipes from the recipe
+   */
+  @OneToMany(type => Subrecipe, subrecipe => subrecipe.linkedRecipe)
+  derivedRecipes: Promise<Subrecipe[]>;
   /**
    * Nutrient data for the recipe
    */

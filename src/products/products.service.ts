@@ -117,7 +117,7 @@ export class ProductsService {
     const productRO = {
       code: product.code,
       description: product.description,
-      foodGroup: product.foodGroup,
+      foodGroup: product.foodGroup.description,
       measures,
       nutrition,
     };

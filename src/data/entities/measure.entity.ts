@@ -22,6 +22,11 @@ export class Measure {
   @Column()
   measure: string;
   /**
+   * Amount for the measure
+   */
+  @Column()
+  amount: number;
+  /**
    * Grams per measure
    */
   @Column()
