@@ -1,3 +1,4 @@
+import { ProductNotFound } from './../common/exeptions/product-not-found';
 import { ProductsDto } from './../models/products/products.dto';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -65,6 +66,20 @@ export class ProductsService {
     return productsToReturn;
   }
 
+  async getProductByCode(productCode: number) {
+    const product = await this.productRepository.findOne({
+      where: {code: productCode},
+    });
+
+    if (!product) {
+      throw new ProductNotFound();
+    }
+
+    const productToReturn = this.productToRO(product);
+
+    return productToReturn;
+  }
+
   private productToRO(product: Product): ProductRO {
     const measures: IMeasure[] = product.measures.map((msr) => {
       const measureToReturn: IMeasure = {
@@ -100,6 +115,7 @@ export class ProductsService {
       };
 
     const productRO = {
+      code: product.code,
       description: product.description,
       foodGroup: product.foodGroup,
       measures,
