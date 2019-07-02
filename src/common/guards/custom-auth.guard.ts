@@ -10,7 +10,9 @@ import { AuthGuard } from '@nestjs/passport';
 
 @Injectable()
 export class AuthGuardWithBlackisting extends AuthGuard('jwt') implements CanActivate {
-  public constructor(private readonly authService: AuthService) { super(); }
+  public constructor(
+    // private readonly authService: AuthService
+  ) { super(); }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     if (!super.canActivate(context)) {
@@ -22,10 +24,10 @@ export class AuthGuardWithBlackisting extends AuthGuard('jwt') implements CanAct
       throw new UnauthorizedException();
     }
 
-    const isTokenBlacklisted = await this.authService.isTokenBlacklisted(token);
-    if (isTokenBlacklisted) {
-      throw new UnauthorizedException();
-    }
+    // const isTokenBlacklisted = await this.authService.isTokenBlacklisted(token);
+    // if (isTokenBlacklisted) {
+    //   throw new UnauthorizedException();
+    // }
 
     return true;
   }
