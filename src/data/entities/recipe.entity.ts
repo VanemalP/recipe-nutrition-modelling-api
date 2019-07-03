@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, ManyToMany, OneToOne, OneToMany, CreateDateColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, ManyToMany, OneToOne, OneToMany, CreateDateColumn, JoinTable, JoinColumn } from 'typeorm';
 
 import { User } from './user.entity';
 import { Nutrition } from './nutrition.entity';
@@ -32,6 +32,11 @@ export class Recipe {
   @Column('longtext')
   notes: string;
   /**
+   * Weight in grams of the recipe
+   */
+  @Column()
+  amount: number;
+  /**
    * Created on
    */
   @CreateDateColumn()
@@ -45,6 +50,7 @@ export class Recipe {
    * Food group to which the recipe belongs
    */
   @ManyToMany(type => FoodGroup, foodGroup => foodGroup.recipes, { eager: true })
+  @JoinTable()
   foodGroups: FoodGroup[];
   /**
    * Ingredients in the recipe
@@ -65,5 +71,6 @@ export class Recipe {
    * Nutrient data for the recipe
    */
   @OneToOne(type => Nutrition, nutrition => nutrition.recipe, { eager: true })
+  @JoinColumn()
   nutrition: Nutrition;
 }

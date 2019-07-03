@@ -8,7 +8,7 @@ import { ConfigService } from './config/config.service';
 import { CoreModule } from './core/core.module';
 import { UsersModule } from './users/users.module';
 import { ProductsModule } from './products/products.module';
-
+import { RecipesModule } from './recipes/recipes.module';
 
 @Module({
   imports: [
@@ -30,6 +30,7 @@ import { ProductsModule } from './products/products.module';
       }),
     }),
     ProductsModule,
+    RecipesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

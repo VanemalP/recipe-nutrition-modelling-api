@@ -1,8 +1,9 @@
-import { Ingredient } from './ingredient.entity';
 import { Entity, PrimaryColumn, Column, OneToMany, OneToOne, JoinColumn, ManyToOne } from 'typeorm';
+
+import { Ingredient } from './ingredient.entity';
+import { FoodGroup } from './food-group.entity';
 import { Measure } from './measure.entity';
 import { Nutrition } from './nutrition.entity';
-import { FoodGroup } from './food-group.entity';
 
 /**
  * Product entity
@@ -23,6 +24,7 @@ export class Product {
    * Food group to which the product belongs
    */
   @ManyToOne(type => FoodGroup, foodGroup => foodGroup.products, { eager: true })
+  @JoinColumn()
   foodGroup: FoodGroup;
   /**
    * Available measures of the product

@@ -75,9 +75,7 @@ export class ProductsService {
       throw new ProductNotFound();
     }
 
-    const productToReturn = this.productToRO(product);
-
-    return productToReturn;
+    return product;
   }
 
   private productToRO(product: Product): ProductRO {
