@@ -1,5 +1,5 @@
 export class CreateSubrecipeDto {
   recipeId: string;
-  quntity: number;
+  quantity: number;
   unit: string;
 }

@@ -1,6 +1,6 @@
 import { INutrition } from './nutrition';
 
 export interface ITotalNutrition {
-  nutrition: INutrition;
+  nutrients: INutrition;
   weight: number;
 }

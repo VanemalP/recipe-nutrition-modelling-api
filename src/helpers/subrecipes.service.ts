@@ -15,7 +15,7 @@ export class SubrecipesService {
     const subrecipe = new Subrecipe();
 
     subrecipe.linkedRecipe = linkedRecipe;
-    subrecipe.quantity = subrecipeData.quntity;
+    subrecipe.quantity = subrecipeData.quantity;
     subrecipe.unit = subrecipeData.unit;
     subrecipe.recipe = Promise.resolve(recipe);
 

@@ -10,6 +10,8 @@ import { User } from '../data/entities/user.entity';
 import { NutritionService } from '../helpers/nutrition.service';
 import { SubrecipeNotFound } from '../common/exeptions/subrecipe-not-found';
 import { SubrecipesService } from '../helpers/subrecipes.service';
+import { ITotalNutrition } from '../common/interfaces/total-nutrition';
+import { NutrientsEnum } from '../common/enums/nutrients.enum';
 
 @Injectable()
 export class RecipesService {
@@ -20,38 +22,53 @@ export class RecipesService {
     private readonly subrecipesService: SubrecipesService,
   ) {}
 
-  async createRecipe(ingredientsData: CreateIngredientDto[], subrecipesData: CreateSubrecipeDto[] , title: string, notes: string, imageUrl: string, author: User) {
+  async createRecipe(ingredientsData: CreateIngredientDto[], subrecipesData: CreateSubrecipeDto[], title: string, notes: string, imageUrl: string, author: User) {
     const newRecipe = await this.recipeRepository.create();
     newRecipe.title = title;
     if (notes) {
       newRecipe.notes = notes;
     }
-
     if (imageUrl) {
       newRecipe.imageURL = imageUrl;
     }
-
     newRecipe.author = Promise.resolve(author);
     newRecipe.derivedRecipes = Promise.resolve([]);
     newRecipe.foodGroups = []; // to change - get ingredients food groups
     const savedRecipe = await this.recipeRepository.save(newRecipe);
+    const allNutrientsArr: ITotalNutrition[] = [];
 
-    const recipeIngredients = await Promise.all(ingredientsData.map(async (ingredientData) => {
+    let ingredientsTotalNutrition: ITotalNutrition;
+    let subrecipesTotalNutrition: ITotalNutrition;
+
+    if (ingredientsData) {
+      const recipeIngredients = await Promise.all(ingredientsData.map(async (ingredientData) => {
         return await this.ingredientsService.createIngredient(ingredientData, savedRecipe);
-    }));
+      }));
+      ingredientsTotalNutrition = await this.nutritionService.calculateIngredientsTotalNutrition(recipeIngredients);
+      allNutrientsArr.push(ingredientsTotalNutrition);
+    }
 
-    // const recipeSubrecipes = await Promise.all(subrecipesData.map(async (subrecipeData) => {
-    //   const linkedRecipe = await this.getRecipeById(subrecipeData.recipeId);
-    //     return await this.subrecipesService.createSubrecipe(subrecipeData, linkedRecipe, savedRecipe);
-    // }));
+    if (subrecipesData) {
+      const recipeSubrecipes = await Promise.all(subrecipesData.map(async (subrecipeData) => {
+        const linkedRecipe = await this.getRecipeById(subrecipeData.recipeId);
+        return await this.subrecipesService.createSubrecipe(subrecipeData, linkedRecipe, savedRecipe);
+      }));
+      subrecipesTotalNutrition = await this.nutritionService.calculateSubrecipesTotalNutrition(recipeSubrecipes);
+      allNutrientsArr.push(subrecipesTotalNutrition);
+    }
 
-    const ingredientsTotalNutrition = await this.nutritionService.calculateIngredientsTotalNutrition(recipeIngredients);
-    // const subrecipesTotalNutrition = await this.nutritionService.calculateSubrecipesTotalNutrition(recipeSubrecipes);
-    // const recipeNutrition = await this.nutritionService.createNutrition(ingredientsTotalNutrition, subrecipesTotalNutrition, savedRecipe);
-    const recipeNutrition = await this.nutritionService.createNutrition(ingredientsTotalNutrition, undefined, savedRecipe);
+    const allNutrients = allNutrientsArr.reduce((acc, curr) => {
+      const nutrientNames = Object.keys(curr.nutrients);
+      nutrientNames.forEach((nutrientName: NutrientsEnum) => {
+        acc.nutrients[nutrientName].value += curr.nutrients[nutrientName].value;
+      });
+      acc.weight += curr.weight;
+      return acc;
+    });
+
+    const recipeNutrition = await this.nutritionService.createNutrition(allNutrients);
     savedRecipe.nutrition = recipeNutrition;
-    savedRecipe.amount = ingredientsTotalNutrition.weight;
-
+    savedRecipe.amount = allNutrients.weight;
 
     return await this.recipeRepository.save(savedRecipe);
   }
@@ -66,5 +83,17 @@ export class RecipesService {
     }
 
     return foundRecipe;
+  }
+
+  async deleteRecipeById(id: string) {
+    const foundRecipe = await this.recipeRepository.findOne({
+      where: {id},
+    });
+
+    if (!foundRecipe) {
+      throw new SubrecipeNotFound();
+    }
+    // check for derived recipes and throw error if there are any
+    return await this.recipeRepository.delete(foundRecipe);
   }
 }

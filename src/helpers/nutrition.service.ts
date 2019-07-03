@@ -13,20 +13,15 @@ import { Subrecipe } from '../data/entities/subrecipe.entity';
 export class NutritionService {
   constructor(@InjectRepository(Nutrition) private readonly nutritionRepository: Repository<Nutrition>) {}
 
-  async createNutrition(totalIngredientNutrition: any, totalSubrecipeNutrition: any, recipe: Recipe) {
+  async createNutrition(allNutrients: ITotalNutrition) {
+    const nutrientNames = Object.keys(allNutrients.nutrients);
+    nutrientNames.forEach((nutrientName: NutrientsEnum) => {
+      const nutrValue = allNutrients.nutrients[nutrientName].value / allNutrients.weight * 100;
+      allNutrients.nutrients[nutrientName].value = +nutrValue.toFixed(3);
+    });
     const nutrition = await this.nutritionRepository.create({
       product: null,
-    });
-    const nutrientNames = Object.keys(totalIngredientNutrition.nutrition);
-    nutrientNames.forEach((nutrientName: NutrientsEnum) => {
-      const nutrIngredientValue = totalIngredientNutrition.nutrition[nutrientName].value / totalIngredientNutrition.weight * 100;
-      let nutrSubrecipeValue: number;
-      if (totalSubrecipeNutrition) {
-        nutrSubrecipeValue = totalSubrecipeNutrition.nutrition[nutrientName].value / totalSubrecipeNutrition.weight * 100;
-      } else {
-        nutrSubrecipeValue = 0;
-      }
-      nutrition[nutrientName].value = +nutrSubrecipeValue.toFixed(3) + +nutrIngredientValue.toFixed(3);
+      ...allNutrients.nutrients,
     });
 
     const recipeNutrition = await this.nutritionRepository.save(nutrition);
@@ -34,7 +29,7 @@ export class NutritionService {
     return recipeNutrition;
   }
 
-  calculateIngredientsTotalNutrition(ingredients: Ingredient[]) {
+  calculateIngredientsTotalNutrition(ingredients: Ingredient[]): ITotalNutrition {
     const calculatedNutrients = ingredients.map(ingredient => {
       const measureOfIngredient = ingredient.product.measures.find(
         measure => `${measure.amount.toString()} ${measure.measure}` === ingredient.unit,
@@ -89,7 +84,7 @@ export class NutritionService {
     return nutrs;
   }
 
-  calculateSubrecipesTotalNutrition(subrecipes: Subrecipe[]) {
+  calculateSubrecipesTotalNutrition(subrecipes: Subrecipe[]): ITotalNutrition {
     const calculatedNutrients = subrecipes.map(subrecipe => {
 
       const weightInGrams = subrecipe.linkedRecipe.amount * subrecipe.quantity;
@@ -127,5 +122,17 @@ export class NutritionService {
 
       return {nutrients, weight: weightInGrams};
     });
+
+    const nutrs = calculatedNutrients.reduce((acc, curr) => {
+      const nutrientNames = Object.keys(curr.nutrients);
+      nutrientNames.forEach((nutrientName: NutrientsEnum) => {
+        acc.nutrients[nutrientName].value += curr.nutrients[nutrientName].value;
+      });
+      acc.weight += curr.weight;
+
+      return acc;
+    });
+
+    return nutrs;
   }
 }
