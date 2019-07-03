@@ -1,4 +1,3 @@
-import { AuthGuardWithBlackisting } from './../common/guards/custom-auth.guard';
 import { LoginUserDto } from '../models/users/login-user.dto';
 import { UserDto } from '../models/users/user.dto';
 import {
@@ -17,6 +16,7 @@ import { RegisterUserDTO } from '../models/users/register-user.dto';
 import { BadRequestFilter } from '../common/filters/bad-request.filter';
 import { NotFoundFilter } from '../common/filters/not-found.filter';
 import { Token } from '../decorators/token.decorator';
+import { AuthGuard } from '@nestjs/passport';
 
 @UseFilters(BadRequestFilter, NotFoundFilter)
 @Controller('api')
@@ -41,7 +41,7 @@ export class AuthController {
     return { token };
   }
 
-  @UseGuards(AuthGuardWithBlackisting)
+  @UseGuards(AuthGuard())
   @Get('logout')
   logout(@Token() token: string): Promise<{ message: string }> {
       return this.authService.logout(token);

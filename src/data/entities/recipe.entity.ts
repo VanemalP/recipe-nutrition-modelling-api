@@ -24,17 +24,22 @@ export class Recipe {
   /**
    * Image url
    */
-  @Column()
+  @Column({default: 'https://images.all-free-download.com/images/graphiclarge/healthy_meal_background_vegetables_eggs_bacon_icons_6836169.jpg'})
   imageURL: string;
   /**
    * Notes
    */
-  @Column('longtext')
+  @Column('longtext', {default: ''})
   notes: string;
+  /**
+   * Measure of the recipe
+   */
+  @Column({default: 'g'})
+  measure: string;
   /**
    * Weight in grams of the recipe
    */
-  @Column()
+  @Column({default: 0})
   amount: number;
   /**
    * Created on

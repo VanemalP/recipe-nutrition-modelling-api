@@ -18,5 +18,7 @@ import { NutritionService } from '../helpers/nutrition.service';
   imports: [AuthModule, TypeOrmModule.forFeature([Recipe, Ingredient, Subrecipe, Nutrition]), ProductsModule],
   controllers: [RecipesController],
   providers: [RecipesService, IngredientsService, SubrecipesService, NutritionService],
+  exports: [RecipesService],
+
 })
 export class RecipesModule {}

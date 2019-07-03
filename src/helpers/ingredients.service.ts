@@ -23,17 +23,8 @@ export class IngredientsService {
     ingredient.product = product;
     ingredient.quantity = ingredientData.quantity;
     ingredient.unit = ingredientData.unit;
-/////////////////////////////
     ingredient.recipe = Promise.resolve(recipe);
-    // await this.ingredientRepository.save(ingredient);
 
-    // const measureOfIngredient = product.measures.find((measure) => `${measure.amount.toString()} ${measure.measure}` === ingredient.unit);
-    // const weightInGrams = measureOfIngredient.gramsPerMeasure * ingredient.quantity;
-
-    // const totalNutrition = this.nutritionService.calculateNutrition(weightInGrams, product.nutrition);
-
-    // return {weightInGrams, totalNutrition};
-/////////////////////////////
     return await this.ingredientRepository.save(ingredient);
   }
 }
