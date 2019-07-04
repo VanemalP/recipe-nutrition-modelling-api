@@ -7,6 +7,7 @@ import { Ingredient } from '../data/entities/ingredient.entity';
 import { CreateIngredientDto } from '../models/ingredients/create-ingredient.dto';
 import { ProductsService } from '../products/products.service';
 import { Recipe } from '../data/entities/recipe.entity';
+import { IngredientNotFound } from '../common/exeptions/ingredient-not-found';
 
 @Injectable()
 export class IngredientsService {
@@ -26,5 +27,21 @@ export class IngredientsService {
     ingredient.recipe = Promise.resolve(recipe);
 
     return await this.ingredientRepository.save(ingredient);
+  }
+
+  async deleteIngredientByRecipeId(id: string) {
+    const ingredientToDelete = await this.ingredientRepository.findOne({
+      where: {
+        id,
+      },
+    });
+
+    if (!ingredientToDelete) {
+      throw new IngredientNotFound('No such ingredient');
+    }
+
+    ingredientToDelete.isDeleted = true;
+
+    return await this.ingredientRepository.save(ingredientToDelete);
   }
 }

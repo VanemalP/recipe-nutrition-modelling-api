@@ -1,3 +1,5 @@
+import { CategoriesService } from './../helpers/categories.service';
+import { Category } from './../data/entities/categoriy.entity';
 import { ProductsModule } from './../products/products.module';
 import { Ingredient } from './../data/entities/ingredient.entity';
 import { Module } from '@nestjs/common';
@@ -15,9 +17,9 @@ import { Nutrition } from '../data/entities/nutrition.entity';
 import { NutritionService } from '../helpers/nutrition.service';
 
 @Module({
-  imports: [AuthModule, TypeOrmModule.forFeature([Recipe, Ingredient, Subrecipe, Nutrition]), ProductsModule],
+  imports: [AuthModule, TypeOrmModule.forFeature([Recipe, Ingredient, Subrecipe, Nutrition, Category]), ProductsModule],
   controllers: [RecipesController],
-  providers: [RecipesService, IngredientsService, SubrecipesService, NutritionService],
+  providers: [RecipesService, IngredientsService, SubrecipesService, NutritionService, CategoriesService],
   exports: [RecipesService],
 
 })

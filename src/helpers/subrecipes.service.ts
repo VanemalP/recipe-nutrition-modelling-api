@@ -4,6 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Subrecipe } from '../data/entities/subrecipe.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { SubrecipeNotFound } from '../common/exeptions/subrecipe-not-found';
 
 @Injectable()
 export class SubrecipesService {
@@ -21,4 +22,19 @@ export class SubrecipesService {
     return await this.subrecipeRepository.save(subrecipe);
   }
 
+  async deleteSubrecipe(id: string) {
+    const subrecipeToDelete = await this.subrecipeRepository.findOne({
+      where: {
+        id,
+      },
+    });
+
+    if (!subrecipeToDelete) {
+      throw new SubrecipeNotFound('No such subrecipe');
+    }
+
+    subrecipeToDelete.isDeleted = true;
+
+    return await this.subrecipeRepository.save(subrecipeToDelete);
+  }
 }

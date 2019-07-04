@@ -133,4 +133,9 @@ export class Nutrition {
    */
   @Column('simple-json')
   FAPU: INutrient;
+  /**
+   * Is the nutrition deleted
+   */
+  @Column({ default: false })
+  isDeleted: boolean;
 }

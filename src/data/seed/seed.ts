@@ -1,3 +1,4 @@
+import { Category } from './../entities/categoriy.entity';
 import 'reflect-metadata';
 import { createConnection } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -6,6 +7,7 @@ import * as fd from '../USDA_db/food_des.json';
 import * as nd from '../USDA_db/nut_data.json';
 import * as ndef from '../USDA_db/nutr_def.json';
 import * as w from '../USDA_db/weight.json';
+import * as cat from '../USDA_db/categories.json';
 
 import { User } from '../entities/user.entity';
 import { Measure } from '../entities/measure.entity';
@@ -28,12 +30,14 @@ const main = async () => {
   const measureRepository = connection.manager.getRepository(Measure);
   const nutritionRepository = connection.manager.getRepository(Nutrition);
   const foodGroupRepository = connection.manager.getRepository(FoodGroup);
+  const categoryRepository = connection.manager.getRepository(Category);
 
   const foodGroup = fg;
   const foodDescription = fd;
   const nutrientData = nd as any;
   const nutrientDefinition = ndef;
   const weight = w;
+  const category = cat;
 
   const populateDatabase = async () => {
     await asyncForEach(foodGroup, async (fdGrp) => {
@@ -41,9 +45,16 @@ const main = async () => {
       foodGrp.code = fdGrp.FdGrp_Cd;
       foodGrp.description = fdGrp.FdGrp_desc;
       foodGrp.products = Promise.resolve([]);
-      foodGrp.recipes = Promise.resolve([]);
 
       await foodGroupRepository.save(foodGrp);
+    });
+
+    await asyncForEach(category, async (recipeCat) => {
+      const recipeCategory = new Category();
+      recipeCategory.name = recipeCat.Name;
+      recipeCategory.recipes = Promise.resolve([]);
+
+      await categoryRepository.save(recipeCategory);
     });
 
     await asyncForEach(foodDescription, async (p) => {

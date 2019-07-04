@@ -28,6 +28,11 @@ export class Subrecipe {
   @Column()
   unit: string;
   /**
+   * Is the subrecipe deleted
+   */
+  @Column({ default: false })
+  isDeleted: boolean;
+  /**
    * Recipes using the subrecipe
    */
   @ManyToOne(type => Recipe, recipe => recipe.subrecipes)

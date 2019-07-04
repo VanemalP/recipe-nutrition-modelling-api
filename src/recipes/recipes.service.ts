@@ -1,3 +1,5 @@
+import { Ingredient } from './../data/entities/ingredient.entity';
+import { Subrecipe } from './../data/entities/subrecipe.entity';
 import { CreateSubrecipeDto } from './../models/subrecipes/create-subrecipe.dto';
 import { CreateIngredientDto } from './../models/ingredients/create-ingredient.dto';
 import { IngredientsService } from './../helpers/ingredients.service';
@@ -8,10 +10,12 @@ import { Recipe } from './../data/entities/recipe.entity';
 import { Repository } from 'typeorm';
 import { User } from '../data/entities/user.entity';
 import { NutritionService } from '../helpers/nutrition.service';
-import { SubrecipeNotFound } from '../common/exeptions/subrecipe-not-found';
+import { RecipeNotFound } from '../common/exeptions/recipe-not-found';
 import { SubrecipesService } from '../helpers/subrecipes.service';
 import { ITotalNutrition } from '../common/interfaces/total-nutrition';
 import { NutrientsEnum } from '../common/enums/nutrients.enum';
+import { RecipeBadRequest } from '../common/exeptions/recipe-bad-request';
+import { CategoriesService } from '../helpers/categories.service';
 
 @Injectable()
 export class RecipesService {
@@ -20,11 +24,14 @@ export class RecipesService {
     private readonly ingredientsService: IngredientsService,
     private readonly nutritionService: NutritionService,
     private readonly subrecipesService: SubrecipesService,
+    private readonly categoriesService: CategoriesService,
   ) {}
 
-  async createRecipe(ingredientsData: CreateIngredientDto[], subrecipesData: CreateSubrecipeDto[], title: string, notes: string, imageUrl: string, author: User) {
+  async createRecipe(ingredientsData: CreateIngredientDto[], subrecipesData: CreateSubrecipeDto[], title: string, category: string, notes: string, imageUrl: string, author: User) {
     const newRecipe = await this.recipeRepository.create();
     newRecipe.title = title;
+    const recipeCategory = await this.categoriesService.getCategoryByName(category);
+    newRecipe.category = recipeCategory;
     if (notes) {
       newRecipe.notes = notes;
     }
@@ -33,7 +40,7 @@ export class RecipesService {
     }
     newRecipe.author = Promise.resolve(author);
     newRecipe.derivedRecipes = Promise.resolve([]);
-    newRecipe.foodGroups = []; // to change - get ingredients food groups
+
     const savedRecipe = await this.recipeRepository.save(newRecipe);
     const allNutrientsArr: ITotalNutrition[] = [];
 
@@ -75,24 +82,66 @@ export class RecipesService {
 
   async getRecipeById(id: string) {
     const foundRecipe = await this.recipeRepository.findOne({
-      where: {id},
+      where: {
+        id,
+        isDeleted: false,
+      },
     });
 
     if (!foundRecipe) {
-      throw new SubrecipeNotFound('Recipe not found');
+      throw new RecipeNotFound('Recipe not found');
     }
     return foundRecipe;
   }
 
-  async deleteRecipeById(id: string) {
-    const foundRecipe = await this.recipeRepository.findOne({
-      where: {id},
-    });
+  async deleteRecipeById(id: string): Promise<{ message: string }> {
+    const deleteRecipe = async () => {
+      const recipeToDelete = await this.recipeRepository.findOne({
+        where: {id},
+      });
 
-    if (!foundRecipe) {
-      throw new SubrecipeNotFound();
+      if (!recipeToDelete) {
+        throw new RecipeNotFound('Recipe not found');
+      }
+
+      const derivedRecipes = await recipeToDelete.derivedRecipes;
+      if (derivedRecipes.length > 0) {
+        const hasUndeltedRecipe = derivedRecipes.some((recipe) => recipe.isDeleted === false);
+        if (hasUndeltedRecipe) {
+          throw new RecipeBadRequest('This recipe is used in other recipe/s and can not be deleted');
+        }
+      }
+
+      const ingredients = recipeToDelete.ingredients;
+      if (ingredients.length > 0) {
+        await this.asyncForEach(ingredients, async (ingredient: Ingredient) => {
+          await this.ingredientsService.deleteIngredientByRecipeId(ingredient.id);
+        });
+      }
+
+      const subrecipes = recipeToDelete.subrecipes;
+      if (subrecipes.length > 0) {
+        await this.asyncForEach(subrecipes, async (subrecipe: Subrecipe) => {
+          await this.subrecipesService.deleteSubrecipe(subrecipe.id);
+        });
+      }
+
+      const nutrition = recipeToDelete.nutrition;
+      await this.nutritionService.deleteNutrition(nutrition.id);
+
+      recipeToDelete.isDeleted = true;
+
+      await this.recipeRepository.save(recipeToDelete);
+    };
+
+    deleteRecipe();
+    return { message: 'Recipe successfully deleted' };
+  }
+
+  // Custom async forEach
+  async asyncForEach(array, callback) {
+    for (let index = 0; index < array.length; index++) {
+      await callback(array[index], index, array);
     }
-    // check for derived recipes and throw error if there are any
-    return await this.recipeRepository.delete(foundRecipe);
   }
 }

@@ -1,6 +1,6 @@
 import { Entity, PrimaryColumn, Column, OneToMany, ManyToMany } from 'typeorm';
+
 import { Product } from './product.entity';
-import { Recipe } from './recipe.entity';
 
 /**
  * Food group entity
@@ -22,9 +22,4 @@ export class FoodGroup {
    */
   @OneToMany(type => Product, product => product.foodGroup)
   products: Promise<Product[]>;
-  /**
-   * Recipes using this food group
-   */
-  @ManyToMany(type => Recipe, recipe => recipe.foodGroups)
-  recipes: Promise<Recipe[]>;
 }

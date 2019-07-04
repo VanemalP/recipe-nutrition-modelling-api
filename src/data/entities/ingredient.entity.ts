@@ -28,6 +28,11 @@ export class Ingredient {
   @Column()
   unit: string;
   /**
+   * Is the recipe deleted
+   */
+  @Column({ default: false })
+  isDeleted: boolean;
+  /**
    * Recipes using the product
    */
   @ManyToOne(type => Recipe, recipe => recipe.ingredients)

@@ -4,7 +4,7 @@ import { User } from './user.entity';
 import { Nutrition } from './nutrition.entity';
 import { Subrecipe } from './subrecipe.entity';
 import { Ingredient } from './ingredient.entity';
-import { FoodGroup } from './food-group.entity';
+import { Category } from './categoriy.entity';
 
 /**
  * Recipe entity
@@ -47,16 +47,20 @@ export class Recipe {
   @CreateDateColumn()
   Created: Date;
   /**
+   * Is the recipe deleted
+   */
+  @Column({ default: false })
+  isDeleted: boolean;
+  /**
    * Author of the recipe
    */
   @ManyToOne(type => User, user => user.recipes)
   author: Promise<User>;
   /**
-   * Food group to which the recipe belongs
+   * Category of the recipe
    */
-  @ManyToMany(type => FoodGroup, foodGroup => foodGroup.recipes, { eager: true })
-  @JoinTable()
-  foodGroups: FoodGroup[];
+  @ManyToOne(type => Category, category => category.recipes, { eager: true })
+  category: Category;
   /**
    * Ingredients in the recipe
    */
@@ -75,7 +79,7 @@ export class Recipe {
   /**
    * Nutrient data for the recipe
    */
-  @OneToOne(type => Nutrition, nutrition => nutrition.recipe, { eager: true, onDelete: 'CASCADE' })
+  @OneToOne(type => Nutrition, nutrition => nutrition.recipe, { eager: true, onDelete: 'CASCADE'  })
   @JoinColumn()
   nutrition: Nutrition;
 }

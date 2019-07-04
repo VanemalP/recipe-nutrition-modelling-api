@@ -7,6 +7,7 @@ import { Ingredient } from '../data/entities/ingredient.entity';
 import { NutrientsEnum } from '../common/enums/nutrients.enum';
 import { Nutrition } from '../data/entities/nutrition.entity';
 import { Subrecipe } from '../data/entities/subrecipe.entity';
+import { NutritionNotFound } from '../common/exeptions/nutrition-not-found';
 
 @Injectable()
 export class NutritionService {
@@ -133,5 +134,21 @@ export class NutritionService {
     });
 
     return nutrs;
+  }
+
+  async deleteNutrition(id: string) {
+    const nutritionToDelete = await this.nutritionRepository.findOne({
+      where: {
+        id,
+      },
+    });
+
+    if (!nutritionToDelete) {
+      throw new NutritionNotFound('Nutrition does not exist');
+    }
+
+    nutritionToDelete.isDeleted = true;
+
+    return await this.nutritionRepository.save(nutritionToDelete);
   }
 }
