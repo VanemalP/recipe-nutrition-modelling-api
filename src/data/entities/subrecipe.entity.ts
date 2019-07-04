@@ -15,8 +15,8 @@ export class Subrecipe {
   /**
    * Recipe
    */
-  @ManyToOne(type => Recipe, recipe => recipe.subrecipes, { eager: true })
-  linkedRecipe: Recipe;
+  @ManyToOne(type => Recipe, recipe => recipe.derivedRecipes)
+  linkedRecipe: Promise<Recipe>;
   /**
    * Quantity of the subrecipe
    */

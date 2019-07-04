@@ -79,9 +79,8 @@ export class RecipesService {
     });
 
     if (!foundRecipe) {
-      throw new SubrecipeNotFound();
+      throw new SubrecipeNotFound('Recipe not found');
     }
-
     return foundRecipe;
   }
 

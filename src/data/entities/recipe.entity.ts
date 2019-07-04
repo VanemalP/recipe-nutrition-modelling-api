@@ -65,8 +65,8 @@ export class Recipe {
   /**
    * Subrecipes in the recipe
    */
-  @OneToMany(type => Subrecipe, subrecipe => subrecipe.recipe)
-  subrecipes: Promise<Subrecipe[]>;
+  @OneToMany(type => Subrecipe, subrecipe => subrecipe.recipe, { eager: true })
+  subrecipes: Subrecipe[];
   /**
    * Derived recipes from the recipe
    */
@@ -75,7 +75,7 @@ export class Recipe {
   /**
    * Nutrient data for the recipe
    */
-  @OneToOne(type => Nutrition, nutrition => nutrition.recipe, { eager: true })
+  @OneToOne(type => Nutrition, nutrition => nutrition.recipe, { eager: true, onDelete: 'CASCADE' })
   @JoinColumn()
   nutrition: Nutrition;
 }
