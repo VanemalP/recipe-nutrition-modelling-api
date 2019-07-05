@@ -3,9 +3,10 @@ import { NotFoundFilter } from './../common/filters/not-found.filter';
 import { AuthGuard } from '@nestjs/passport';
 import { CreateRecipeDto } from './../models/recipes/create-recipe.dto';
 import { User } from './../data/entities/user.entity';
-import { Controller, UseGuards, Post, Body, Param, Get, Delete, UseFilters } from '@nestjs/common';
+import { Controller, UseGuards, Post, Body, Param, Get, Delete, UseFilters, Put } from '@nestjs/common';
 import { RecipesService } from './recipes.service';
 import { User as UserDec } from '../decorators/user.decorator';
+import { UpdateRecipeDto } from '../models/recipes/update-reipe.dto';
 
 @UseGuards(AuthGuard())
 @UseFilters(NotFoundFilter, BadRequestFilter)
@@ -15,12 +16,17 @@ export class RecipesController {
 
   @Post()
   async createRecipe(@Body() data: CreateRecipeDto, @UserDec() user: User) {
-    return await this.recipesService.createRecipe(data.ingredientsData, data.subrecipesData, data.title, data.category, data.notes, data.imageUrl, user);
+    return await this.recipesService.createRecipe(data, user);
   }
 
   @Get(':id')
   async getRecipeById(@Param('id') id: string) {
     return await this.recipesService.getRecipeById(id);
+  }
+
+  @Put(':id')
+  async updateRecipe(@Param('id') id: string, @Body() data: UpdateRecipeDto, @UserDec() user: User) {
+    return await this.recipesService.updateRecipeById(id, data, user.username);
   }
 
   @Delete(':id')

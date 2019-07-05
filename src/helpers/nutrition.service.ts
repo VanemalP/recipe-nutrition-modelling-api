@@ -13,7 +13,7 @@ import { NutritionNotFound } from '../common/exeptions/nutrition-not-found';
 export class NutritionService {
   constructor(@InjectRepository(Nutrition) private readonly nutritionRepository: Repository<Nutrition>) {}
 
-  async createNutrition(allNutrients: ITotalNutrition) {
+  async createNutrition(allNutrients: ITotalNutrition): Promise<Nutrition> {
     const nutrientNames = Object.keys(allNutrients.nutrients);
     nutrientNames.forEach((nutrientName: NutrientsEnum) => {
       const nutrValue = allNutrients.nutrients[nutrientName].value / allNutrients.weight * 100;
@@ -34,8 +34,7 @@ export class NutritionService {
       const measureOfIngredient = ingredient.product.measures.find(
         measure => `${measure.amount.toString()} ${measure.measure}` === ingredient.unit,
       );
-
-      const weightInGrams = measureOfIngredient.gramsPerMeasure * ingredient.quantity;
+      const weightInGrams = ingredient.isDeleted ? 0 : measureOfIngredient.gramsPerMeasure * ingredient.quantity;
 
       const nutrients = {
         PROCNT: ingredient.product.nutrition.PROCNT,
@@ -63,11 +62,17 @@ export class NutritionService {
       };
 
       const nutrientNames = Object.keys(nutrients);
-      nutrientNames.forEach((nutrientName: NutrientsEnum) => {
-        nutrients[nutrientName].value =
-          nutrients[nutrientName].value / 100 * weightInGrams;
-      });
-
+      if (!ingredient.isDeleted) {
+        nutrientNames.forEach((nutrientName: NutrientsEnum) => {
+          nutrients[nutrientName].value =
+            nutrients[nutrientName].value / 100 * weightInGrams;
+        });
+      } else {
+        nutrientNames.forEach((nutrientName: NutrientsEnum) => {
+          nutrients[nutrientName].value = 0;
+        });
+      }
+      console.log({nutrients, weight: weightInGrams});
       return {nutrients, weight: weightInGrams};
     });
 
@@ -87,7 +92,7 @@ export class NutritionService {
   async calculateSubrecipesTotalNutrition(subrecipes: Subrecipe[]): Promise<ITotalNutrition> {
     const calculatedNutrients = await Promise.all(subrecipes.map(async (subrecipe) => {
       const linkedRecipe = await subrecipe.linkedRecipe;
-      const weightInGrams = linkedRecipe.amount * subrecipe.quantity;
+      const weightInGrams = subrecipe.isDeleted ? 0 : linkedRecipe.amount * subrecipe.quantity;
 
       const nutrients = {
         PROCNT: linkedRecipe.nutrition.PROCNT,
@@ -114,11 +119,23 @@ export class NutritionService {
         FAPU: linkedRecipe.nutrition.FAPU,
       };
 
-      const nutrentNames = Object.keys(nutrients);
-      nutrentNames.forEach((nutrientName: NutrientsEnum) => {
-        nutrients[nutrientName].value =
-        nutrients[nutrientName].value / 100 * weightInGrams;
-      });
+      // const nutrentNames = Object.keys(nutrients);
+      // nutrentNames.forEach((nutrientName: NutrientsEnum) => {
+      //   nutrients[nutrientName].value =
+      //   nutrients[nutrientName].value / 100 * weightInGrams;
+      // });
+
+      const nutrientNames = Object.keys(nutrients);
+      if (!subrecipe.isDeleted) {
+        nutrientNames.forEach((nutrientName: NutrientsEnum) => {
+          nutrients[nutrientName].value =
+          nutrients[nutrientName].value / 100 * weightInGrams;
+        });
+      } else {
+        nutrientNames.forEach((nutrientName: NutrientsEnum) => {
+          nutrients[nutrientName].value = 0;
+        });
+      }
 
       return {nutrients, weight: weightInGrams};
     })).then(result => result);
@@ -136,6 +153,17 @@ export class NutritionService {
     return nutrs;
   }
 
+  async updateNutrition(nutrition: Nutrition, allNutrients: ITotalNutrition): Promise<Nutrition> {
+    const nutrientNames = Object.keys(allNutrients.nutrients);
+    nutrientNames.forEach((nutrientName: NutrientsEnum) => {
+      const nutrValue = allNutrients.nutrients[nutrientName].value / allNutrients.weight * 100;
+      // allNutrients.nutrients[nutrientName].value = +nutrValue.toFixed(3);
+      nutrition[nutrientName].value = +nutrValue.toFixed(3);
+    });
+
+    return await this.nutritionRepository.save(nutrition);
+  }
+
   async deleteNutrition(id: string) {
     const nutritionToDelete = await this.nutritionRepository.findOne({
       where: {
@@ -150,5 +178,19 @@ export class NutritionService {
     nutritionToDelete.isDeleted = true;
 
     return await this.nutritionRepository.save(nutritionToDelete);
+  }
+
+  async findNutritionById(id: string): Promise<Nutrition> {
+    const foundNutrition = await this.nutritionRepository.findOne({
+      where: {
+        id,
+        isDeleted: false,
+      },
+    });
+    if (!foundNutrition) {
+      throw new NutritionNotFound('No such nutrition');
+    }
+
+    return foundNutrition;
   }
 }

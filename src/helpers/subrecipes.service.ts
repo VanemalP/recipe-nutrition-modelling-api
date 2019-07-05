@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { Subrecipe } from '../data/entities/subrecipe.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SubrecipeNotFound } from '../common/exeptions/subrecipe-not-found';
+import { UpdateSubrecipeDto } from '../models/subrecipes/update-subrecipe.dto';
 
 @Injectable()
 export class SubrecipesService {
@@ -22,16 +23,39 @@ export class SubrecipesService {
     return await this.subrecipeRepository.save(subrecipe);
   }
 
-  async deleteSubrecipe(id: string) {
-    const subrecipeToDelete = await this.subrecipeRepository.findOne({
+  async findSubrecipeById(id: string): Promise<Subrecipe> {
+    const foundSubrecipe = await this.subrecipeRepository.findOne({
       where: {
         id,
+        isDeleted: false,
       },
     });
 
-    if (!subrecipeToDelete) {
+    if (!foundSubrecipe) {
       throw new SubrecipeNotFound('No such subrecipe');
     }
+
+    return foundSubrecipe;
+  }
+
+  async updateSubrecipe(updateData: UpdateSubrecipeDto): Promise<Subrecipe> {
+    const subrecipeToUpdate = await this.findSubrecipeById(updateData.id);
+
+    if (updateData.isDeleted) {
+      subrecipeToUpdate.isDeleted = updateData.isDeleted;
+    }
+    if (updateData.quantity) {
+      subrecipeToUpdate.quantity = updateData.quantity;
+    }
+    if (updateData.unit) {
+      subrecipeToUpdate.unit = updateData.unit;
+    }
+
+    return await this.subrecipeRepository.save(subrecipeToUpdate);
+  }
+
+  async deleteSubrecipe(id: string) {
+    const subrecipeToDelete = await this.findSubrecipeById(id);
 
     subrecipeToDelete.isDeleted = true;
 

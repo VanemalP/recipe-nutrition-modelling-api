@@ -8,6 +8,7 @@ import { CreateIngredientDto } from '../models/ingredients/create-ingredient.dto
 import { ProductsService } from '../products/products.service';
 import { Recipe } from '../data/entities/recipe.entity';
 import { IngredientNotFound } from '../common/exeptions/ingredient-not-found';
+import { UpdateIngredientDto } from '../models/ingredients/update-ingredient.dto';
 
 @Injectable()
 export class IngredientsService {
@@ -17,7 +18,7 @@ export class IngredientsService {
     private readonly nutritionService: NutritionService,
   ) {}
 
-  async createIngredient(ingredientData: CreateIngredientDto, recipe: Recipe) {
+  async createIngredient(ingredientData: CreateIngredientDto, recipe: Recipe): Promise<Ingredient> {
     const product = await this.productsService.getProductByCode(ingredientData.productCode);
     const ingredient = new Ingredient();
 
@@ -29,16 +30,39 @@ export class IngredientsService {
     return await this.ingredientRepository.save(ingredient);
   }
 
-  async deleteIngredientByRecipeId(id: string) {
-    const ingredientToDelete = await this.ingredientRepository.findOne({
+  async findIngredientById(id: string): Promise<Ingredient> {
+    const foundIngredient = await this.ingredientRepository.findOne({
       where: {
         id,
+        isDeleted: false,
       },
     });
 
-    if (!ingredientToDelete) {
+    if (!foundIngredient) {
       throw new IngredientNotFound('No such ingredient');
     }
+
+    return foundIngredient;
+  }
+
+  async updateIngredient(updateData: UpdateIngredientDto): Promise<Ingredient> {
+    const ingredientToUpdate = await this.findIngredientById(updateData.id);
+
+    if (updateData.isDeleted) {
+      ingredientToUpdate.isDeleted = updateData.isDeleted;
+    }
+    if (updateData.quantity) {
+      ingredientToUpdate.quantity = updateData.quantity;
+    }
+    if (updateData.unit) {
+      ingredientToUpdate.unit = updateData.unit;
+    }
+
+    return await this.ingredientRepository.save(ingredientToUpdate);
+  }
+
+  async deleteIngredientByRecipeId(id: string) {
+    const ingredientToDelete =  await this.findIngredientById(id);
 
     ingredientToDelete.isDeleted = true;
 
