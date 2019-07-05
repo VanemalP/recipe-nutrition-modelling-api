@@ -69,12 +69,12 @@ export class RecipesService {
     if (subrecipesData) {
       const recipeSubrecipes = await Promise.all(subrecipesData.map(async (subrecipeData) => {
         const linkedRecipe = await this.getRecipeById(subrecipeData.recipeId);
-        return await this.subrecipesService.createSubrecipe(subrecipeData, linkedRecipe, savedRecipe);
+        return {subrecipe: await this.subrecipesService.createSubrecipe(subrecipeData, linkedRecipe, savedRecipe), linkedRecipe};
       }));
       subrecipesTotalNutrition = await this.nutritionService.calculateSubrecipesTotalNutrition(recipeSubrecipes);
       allNutrientsArr.push(subrecipesTotalNutrition);
     }
-
+  
     const allNutrients = allNutrientsArr.reduce((acc, curr) => {
       const nutrientNames = Object.keys(curr.nutrients);
       nutrientNames.forEach((nutrientName: NutrientsEnum) => {
@@ -124,50 +124,57 @@ export class RecipesService {
 
     const allNutrientsArr: ITotalNutrition[] = [];
 
-    let newIngredientsTotalNutrition: ITotalNutrition;
-    let newSubrecipesTotalNutrition: ITotalNutrition;
-    let updateIngredientsTotalNutrition: ITotalNutrition;
-    let updateSubrecipesTotalNutrition: ITotalNutrition;
+    let recipeIngredientsTotalNutrition: ITotalNutrition;
+    let recipeSubrecipesTotalNutrition: ITotalNutrition;
 
     if (newIngredientsData) {
-      const newRecipeIngredients = await Promise.all(newIngredientsData.map(async (ingredientData) => {
-        return await this.ingredientsService.createIngredient(ingredientData, recipeToUpdate);
+      await Promise.all(newIngredientsData.map(async (ingredientData) => {
+        const newIngredient = await this.ingredientsService.createIngredient(ingredientData, recipeToUpdate);
+        recipeToUpdate.ingredients = [...await recipeToUpdate.ingredients, newIngredient];
+
+        return newIngredient;
       }));
-      newIngredientsTotalNutrition = await this.nutritionService.calculateIngredientsTotalNutrition(newRecipeIngredients);
-      allNutrientsArr.push(newIngredientsTotalNutrition);
     }
 
     if (updateIngredientsData) {
-      const updateRecipeIngredients = await Promise.all(updateIngredientsData.map(async (ingredientData) => {
+      await Promise.all(updateIngredientsData.map(async (ingredientData) => {
         return await this.ingredientsService.updateIngredient(ingredientData);
       }));
-      // updateIngredientsTotalNutrition = await this.nutritionService.calculateIngredientsTotalNutrition(updateRecipeIngredients);
-      // allNutrientsArr.push(updateIngredientsTotalNutrition);
     }
 
     if (newSubrecipesData) {
-      const newRecipeSubrecipes = await Promise.all(newSubrecipesData.map(async (subrecipeData) => {
+      await Promise.all(newSubrecipesData.map(async (subrecipeData) => {
         const linkedRecipe = await this.getRecipeById(subrecipeData.recipeId);
-        return await this.subrecipesService.createSubrecipe(subrecipeData, linkedRecipe, recipeToUpdate);
+        const newSubrecipe = await this.subrecipesService.createSubrecipe(subrecipeData, linkedRecipe, recipeToUpdate);
+        recipeToUpdate.subrecipes = [...await recipeToUpdate.subrecipes, newSubrecipe];
+
+        return newSubrecipe;
       }));
-      newSubrecipesTotalNutrition = await this.nutritionService.calculateSubrecipesTotalNutrition(newRecipeSubrecipes);
-      allNutrientsArr.push(newSubrecipesTotalNutrition);
     }
 
     if (updateSubrecipesData) {
-      const updateRecipeSubrecipes = await Promise.all(updateSubrecipesData.map(async (subrecipeData) => {
+      await Promise.all(updateSubrecipesData.map(async (subrecipeData) => {
         return await this.subrecipesService.updateSubrecipe(subrecipeData);
       }));
-      // updateSubrecipesTotalNutrition = await this.nutritionService.calculateSubrecipesTotalNutrition(updateRecipeSubrecipes);
-      // allNutrientsArr.push(updateSubrecipesTotalNutrition);
     }
-
+    await this.recipeRepository.save(recipeToUpdate)
     const recipeWithUpdatedIngrAndSubrec = await this.getRecipeById(id);
     const recipeIngredients = recipeWithUpdatedIngrAndSubrec.ingredients;
-    recipeIngredientsTotalNutrition = await this.nutritionService.calculateIngredientsTotalNutrition(updateRecipeIngredients);
-    allNutrientsArr.push(updateIngredientsTotalNutrition);
-    console.log(recipeWithUpdatedIngrAndSubrec.ingredients);
-    const recipeNutro = recipeToUpdate.nutrition;
+    recipeIngredientsTotalNutrition = await this.nutritionService.calculateIngredientsTotalNutrition(recipeIngredients);
+    if (recipeIngredientsTotalNutrition) {
+      allNutrientsArr.push(recipeIngredientsTotalNutrition);
+    }
+
+    const recipeSubrecipes = await Promise.all(recipeWithUpdatedIngrAndSubrec.subrecipes.map(async (subrecipe) => {
+      const linkedRecipeId = (await subrecipe.linkedRecipe).id;
+      const linkedRecipe = await this.getRecipeById(linkedRecipeId)
+      return {subrecipe, linkedRecipe};
+    })).then(result => result);
+    recipeSubrecipesTotalNutrition = await this.nutritionService.calculateSubrecipesTotalNutrition(recipeSubrecipes);
+    if (recipeSubrecipesTotalNutrition) {
+      allNutrientsArr.push(recipeSubrecipesTotalNutrition);
+    }
+
     if (allNutrientsArr.length > 0) {
       const allNutrients = allNutrientsArr.reduce((acc, curr) => {
         const nutrientNames = Object.keys(curr.nutrients);

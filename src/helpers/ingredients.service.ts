@@ -25,7 +25,9 @@ export class IngredientsService {
     ingredient.product = product;
     ingredient.quantity = ingredientData.quantity;
     ingredient.unit = ingredientData.unit;
-    ingredient.recipe = Promise.resolve(recipe);
+    if (!recipe.ingredients) {
+      ingredient.recipe = Promise.resolve(recipe);
+    }
 
     return await this.ingredientRepository.save(ingredient);
   }
