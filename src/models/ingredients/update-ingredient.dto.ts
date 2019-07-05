@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional, IsBoolean } from 'class-validator';
 export class UpdateIngredientDto {
   @IsString()
   id: string;
@@ -10,5 +10,7 @@ export class UpdateIngredientDto {
   @IsOptional()
   @IsString()
   unit?: string;
+
+  @IsBoolean()
   isDeleted?: boolean;
 }

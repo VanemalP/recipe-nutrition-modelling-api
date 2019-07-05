@@ -1,3 +1,4 @@
+import { RecipeQueryDto } from './../models/recipes/recipe-query.dto';
 import { CreateRecipeDto } from './../models/recipes/create-recipe.dto';
 import { BadRequestException } from './../common/exeptions/bad-request';
 import { Ingredient } from './../data/entities/ingredient.entity';
@@ -21,6 +22,7 @@ import { CategoriesService } from '../helpers/categories.service';
 import { UpdateIngredientDto } from '../models/ingredients/update-ingredient.dto';
 import { UpdateSubrecipeDto } from '../models/subrecipes/update-subrecipe.dto';
 import { UpdateRecipeDto } from '../models/recipes/update-reipe.dto';
+import { RecipesDto } from '../models/recipes/recipes.dto';
 
 @Injectable()
 export class RecipesService {
@@ -250,6 +252,65 @@ export class RecipesService {
 
     deleteRecipe();
     return { message: 'Recipe successfully deleted' };
+  }
+
+  async getRecipes(query: RecipeQueryDto, route: string, user: User): Promise<RecipesDto> {
+    const title = query.title ? query.title : '';
+    const category = query.category ? query.category : '';
+    const min = query.min ? +query.min : 0;
+    const max = query.max ? +query.max : 0;
+    const nutrient = query.nutrient ? query.nutrient : '';
+    let page = query.page ? +query.page : 1;
+    page = page < 0 ? 1 : page;
+    let queryStr = `${route}?`;
+    let limit =  query.limit ? +query.limit : 0;
+    limit = limit > 100 ? 100 : limit;
+
+    const queryBuilder = await this.recipeRepository
+      .createQueryBuilder('recipe')
+      .leftJoinAndSelect('recipe.ingredients', 'ingredient')
+      .leftJoinAndSelect('recipe.category', 'category')
+      .leftJoinAndSelect('recipe.subrecipes', 'subrecipe')
+      .leftJoinAndSelect('recipe.nutrition', 'nutrition')
+      .addOrderBy('recipe.title', 'ASC')
+      .where('recipe.author = :author', {author: user});
+
+    if (title) {
+      queryBuilder.andWhere('LOWER(recipe.title) LIKE :title', {
+        title: `%${title.toLowerCase()}%`,
+      });
+      queryStr = queryStr.concat(`titile=${title}&`);
+    }
+
+    if (category) {
+      queryBuilder.andWhere('LOWER(recipe.category) LIKE :category', {
+        category: `%${category.toLowerCase()}%`,
+      });
+      queryStr = queryStr.concat(`category=${category}&`);
+    }
+
+    // if (nutrient) {}
+
+    if (limit) {
+      queryBuilder.take(limit).skip((page - 1) * limit);
+      queryStr = queryStr.concat(`limit=${limit}&`);
+    }
+
+    const recipes =  await queryBuilder.getMany();
+    const recipesROArr = recipes.map((recipe) => this.recipeToRO(recipe));
+
+    const total = await queryBuilder.getCount();
+    const isNext = limit ? route && (total / limit >= page) : false;
+    const isPrevious = route && page > 1;
+    const recipesToReturn = new RecipesDto();
+    recipesToReturn.recipes = recipesROArr;
+    recipesToReturn.page = page;
+    recipesToReturn.recipesCount = total < limit || limit === 0 ? total : limit;
+    recipesToReturn.totalRecipes = total;
+    recipesToReturn.next = isNext ? `${queryStr}page=${page + 1}` : '';
+    recipesToReturn.previous = isPrevious ? `${queryStr}page=${page - 1}` : '';
+
+    return recipesToReturn;
   }
 
   // Custom async forEach
