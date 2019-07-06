@@ -23,6 +23,11 @@ import { UpdateIngredientDto } from '../models/ingredients/update-ingredient.dto
 import { UpdateSubrecipeDto } from '../models/subrecipes/update-subrecipe.dto';
 import { UpdateRecipeDto } from '../models/recipes/update-reipe.dto';
 import { RecipesDto } from '../models/recipes/recipes.dto';
+import { RecipeRO } from '../models/recipes/recipe-ro';
+import { INutrition } from '../common/interfaces/nutrition';
+import { IngredientRO } from '../models/ingredients/ingredient-ro';
+import { SubrecipeRO } from '../models/subrecipes/subrecipe-ro';
+import { Nutrition } from '../data/entities/nutrition.entity';
 
 @Injectable()
 export class RecipesService {
@@ -76,7 +81,7 @@ export class RecipesService {
       subrecipesTotalNutrition = await this.nutritionService.calculateSubrecipesTotalNutrition(recipeSubrecipes);
       allNutrientsArr.push(subrecipesTotalNutrition);
     }
-  
+
     const allNutrients = allNutrientsArr.reduce((acc, curr) => {
       const nutrientNames = Object.keys(curr.nutrients);
       nutrientNames.forEach((nutrientName: NutrientsEnum) => {
@@ -159,7 +164,7 @@ export class RecipesService {
         return await this.subrecipesService.updateSubrecipe(subrecipeData);
       }));
     }
-    await this.recipeRepository.save(recipeToUpdate)
+    await this.recipeRepository.save(recipeToUpdate);
     const recipeWithUpdatedIngrAndSubrec = await this.getRecipeById(id);
     const recipeIngredients = recipeWithUpdatedIngrAndSubrec.ingredients;
     recipeIngredientsTotalNutrition = await this.nutritionService.calculateIngredientsTotalNutrition(recipeIngredients);
@@ -169,7 +174,7 @@ export class RecipesService {
 
     const recipeSubrecipes = await Promise.all(recipeWithUpdatedIngrAndSubrec.subrecipes.map(async (subrecipe) => {
       const linkedRecipeId = (await subrecipe.linkedRecipe).id;
-      const linkedRecipe = await this.getRecipeById(linkedRecipeId)
+      const linkedRecipe = await this.getRecipeById(linkedRecipeId);
       return {subrecipe, linkedRecipe};
     })).then(result => result);
     recipeSubrecipesTotalNutrition = await this.nutritionService.calculateSubrecipesTotalNutrition(recipeSubrecipes);
@@ -208,6 +213,21 @@ export class RecipesService {
       throw new RecipeNotFound('Recipe not found');
     }
     return foundRecipe;
+  }
+
+  async getRecipeByIdAndAuthor(id: string, user: User) {
+    const foundRecipe = await this.recipeRepository.findOne({
+      where: {
+        id,
+        isDeleted: false,
+        author: user,
+      },
+    });
+
+    if (!foundRecipe) {
+      throw new RecipeNotFound('Recipe not found');
+    }
+    return this.recipeToRO(foundRecipe, true);
   }
 
   async deleteRecipeById(id: string): Promise<{ message: string }> {
@@ -254,26 +274,27 @@ export class RecipesService {
     return { message: 'Recipe successfully deleted' };
   }
 
-  async getRecipes(query: RecipeQueryDto, route: string, user: User): Promise<RecipesDto> {
+  async getRecipes(query: RecipeQueryDto, route: string, user: User) {
     const title = query.title ? query.title : '';
     const category = query.category ? query.category : '';
+    const nutrient = query.nutrient ? query.nutrient : '';
     const min = query.min ? +query.min : 0;
     const max = query.max ? +query.max : 0;
-    const nutrient = query.nutrient ? query.nutrient : '';
+    let limit =  query.limit ? +query.limit : 0;
+    limit = limit > 100 ? 100 : limit;
     let page = query.page ? +query.page : 1;
     page = page < 0 ? 1 : page;
     let queryStr = `${route}?`;
-    let limit =  query.limit ? +query.limit : 0;
-    limit = limit > 100 ? 100 : limit;
 
     const queryBuilder = await this.recipeRepository
       .createQueryBuilder('recipe')
-      .leftJoinAndSelect('recipe.ingredients', 'ingredient')
       .leftJoinAndSelect('recipe.category', 'category')
-      .leftJoinAndSelect('recipe.subrecipes', 'subrecipe')
       .leftJoinAndSelect('recipe.nutrition', 'nutrition')
+      .innerJoin('recipe.author', 'author', 'author.username = :username', {
+        username: user.username,
+      })
       .addOrderBy('recipe.title', 'ASC')
-      .where('recipe.author = :author', {author: user});
+      .where('recipe.isDeleted = :isDeleted', { isDeleted: false});
 
     if (title) {
       queryBuilder.andWhere('LOWER(recipe.title) LIKE :title', {
@@ -289,23 +310,33 @@ export class RecipesService {
       queryStr = queryStr.concat(`category=${category}&`);
     }
 
-    // if (nutrient) {}
+    const recipes =  await queryBuilder.getMany();
 
-    if (limit) {
-      queryBuilder.take(limit).skip((page - 1) * limit);
-      queryStr = queryStr.concat(`limit=${limit}&`);
+    let filteredRecipes: Recipe[] = recipes;
+    if (nutrient) {
+      if (min && max) {
+        queryStr = queryStr.concat(`nutrient=${nutrient}&min=${min}&max=${max}&`);
+        filteredRecipes = recipes.filter((recipe) => recipe.nutrition[nutrient].value >= min && recipe.nutrition[nutrient].value <= max);
+      } else if (min) {
+        queryStr = queryStr.concat(`nutrient=${nutrient}&min=${min}&`);
+        filteredRecipes = recipes.filter((recipe) => recipe.nutrition[nutrient].value >= min);
+      } else if (max) {
+        queryStr = queryStr.concat(`nutrient=${nutrient}&max=${max}&`);
+        filteredRecipes = recipes.filter((recipe) => recipe.nutrition[nutrient].value <= max);
+      }
     }
 
-    const recipes =  await queryBuilder.getMany();
-    const recipesROArr = recipes.map((recipe) => this.recipeToRO(recipe));
+    const recipesROArr = await Promise.all(filteredRecipes.map(recipe => this.recipeToRO(recipe, false))).then(result => result);
 
-    const total = await queryBuilder.getCount();
+    const total = recipesROArr.length;
+    page = page > total / limit ? Math.ceil(total / limit) : page;
     const isNext = limit ? route && (total / limit >= page) : false;
     const isPrevious = route && page > 1;
     const recipesToReturn = new RecipesDto();
-    recipesToReturn.recipes = recipesROArr;
+    const itemsToShow = limit === 0 ? total : limit;
+    recipesToReturn.recipes = this.paginate(recipesROArr, itemsToShow, page);
     recipesToReturn.page = page;
-    recipesToReturn.recipesCount = total < limit || limit === 0 ? total : limit;
+    recipesToReturn.recipesCount = total < limit || limit === 0 ? total : recipesToReturn.recipes.length;
     recipesToReturn.totalRecipes = total;
     recipesToReturn.next = isNext ? `${queryStr}page=${page + 1}` : '';
     recipesToReturn.previous = isPrevious ? `${queryStr}page=${page - 1}` : '';
@@ -318,5 +349,123 @@ export class RecipesService {
     for (let index = 0; index < array.length; index++) {
       await callback(array[index], index, array);
     }
+  }
+
+  private async recipeToRO(recipe: Recipe, isFindOne: boolean): Promise<RecipeRO> {
+    const nutrition: INutrition = {
+      PROCNT: recipe.nutrition.PROCNT,
+      FAT: recipe.nutrition.FAT,
+      CHOCDF: recipe.nutrition.CHOCDF,
+      ENERC_KCAL: recipe.nutrition.ENERC_KCAL,
+      SUGAR: recipe.nutrition.SUGAR,
+      FIBTG: recipe.nutrition.FIBTG,
+      CA: recipe.nutrition.CA,
+      FE: recipe.nutrition.FE,
+      P: recipe.nutrition.P,
+      K: recipe.nutrition.K,
+      NA: recipe.nutrition.NA,
+      VITA_IU: recipe.nutrition.VITA_IU,
+      TOCPHA: recipe.nutrition.TOCPHA,
+      VITD: recipe.nutrition.VITD,
+      VITC: recipe.nutrition.VITC,
+      VITB12: recipe.nutrition.VITB12,
+      FOLAC: recipe.nutrition.FOLAC,
+      CHOLE: recipe.nutrition.CHOLE,
+      FATRN: recipe.nutrition.FATRN,
+      FASAT: recipe.nutrition.FASAT,
+      FAMS: recipe.nutrition.FAMS,
+      FAPU: recipe.nutrition.FAPU,
+    };
+
+    const recipeRO: RecipeRO = {
+      id: recipe.id,
+      title: recipe.title,
+      imageUrl: recipe.imageURL,
+      notes: recipe.notes,
+      measure: recipe.measure,
+      amount: recipe.amount,
+      created: recipe.Created,
+      category: recipe.category.name,
+      nutrition,
+    };
+
+    if (isFindOne) {
+      recipeRO.ingredients = recipe.ingredients.map((ingredient) => {
+        const ingrNutrition: INutrition = {
+          PROCNT: ingredient.product.nutrition.PROCNT,
+          FAT: ingredient.product.nutrition.FAT,
+          CHOCDF: ingredient.product.nutrition.CHOCDF,
+          ENERC_KCAL: ingredient.product.nutrition.ENERC_KCAL,
+          SUGAR: ingredient.product.nutrition.SUGAR,
+          FIBTG: ingredient.product.nutrition.FIBTG,
+          CA: ingredient.product.nutrition.CA,
+          FE: ingredient.product.nutrition.FE,
+          P: ingredient.product.nutrition.P,
+          K: ingredient.product.nutrition.K,
+          NA: ingredient.product.nutrition.NA,
+          VITA_IU: ingredient.product.nutrition.VITA_IU,
+          TOCPHA: ingredient.product.nutrition.TOCPHA,
+          VITD: ingredient.product.nutrition.VITD,
+          VITC: ingredient.product.nutrition.VITC,
+          VITB12: ingredient.product.nutrition.VITB12,
+          FOLAC: ingredient.product.nutrition.FOLAC,
+          CHOLE: ingredient.product.nutrition.CHOLE,
+          FATRN: ingredient.product.nutrition.FATRN,
+          FASAT: ingredient.product.nutrition.FASAT,
+          FAMS: ingredient.product.nutrition.FAMS,
+          FAPU: ingredient.product.nutrition.FAPU,
+        };
+        return {
+          id: ingredient.id,
+          product: ingredient.product.description,
+          unit: ingredient.unit,
+          quantity: ingredient.quantity,
+          nutrition: ingrNutrition,
+        };
+      });
+      recipeRO.subrecipes = await Promise.all(recipe.subrecipes.map(async (subrecipe) => {
+        const linkedRecipeId = (await subrecipe.linkedRecipe).id;
+        const linkedRecipe = await this.getRecipeById(linkedRecipeId);
+        const ingrNutrition: INutrition = {
+          PROCNT: linkedRecipe.nutrition.PROCNT,
+          FAT: linkedRecipe.nutrition.FAT,
+          CHOCDF: linkedRecipe.nutrition.CHOCDF,
+          ENERC_KCAL: linkedRecipe.nutrition.ENERC_KCAL,
+          SUGAR: linkedRecipe.nutrition.SUGAR,
+          FIBTG: linkedRecipe.nutrition.FIBTG,
+          CA: linkedRecipe.nutrition.CA,
+          FE: linkedRecipe.nutrition.FE,
+          P: linkedRecipe.nutrition.P,
+          K: linkedRecipe.nutrition.K,
+          NA: linkedRecipe.nutrition.NA,
+          VITA_IU: linkedRecipe.nutrition.VITA_IU,
+          TOCPHA: linkedRecipe.nutrition.TOCPHA,
+          VITD: linkedRecipe.nutrition.VITD,
+          VITC: linkedRecipe.nutrition.VITC,
+          VITB12: linkedRecipe.nutrition.VITB12,
+          FOLAC: linkedRecipe.nutrition.FOLAC,
+          CHOLE: linkedRecipe.nutrition.CHOLE,
+          FATRN: linkedRecipe.nutrition.FATRN,
+          FASAT: linkedRecipe.nutrition.FASAT,
+          FAMS: linkedRecipe.nutrition.FAMS,
+          FAPU: linkedRecipe.nutrition.FAPU,
+        };
+        return {
+          id: subrecipe.id,
+          recipe: linkedRecipe.title,
+          unit: subrecipe.unit,
+          quantity: subrecipe.quantity,
+          nutrition: ingrNutrition,
+        };
+      })).then(result => result);
+    }
+
+    return recipeRO;
+  }
+
+  private paginate(recipes: RecipeRO[], limit: number, page: number): RecipeRO[] {
+    const startIndex = (page - 1) * limit;
+    const endIndex = (page - 1) * limit + limit;
+    return recipes.slice(startIndex, endIndex);
   }
 }

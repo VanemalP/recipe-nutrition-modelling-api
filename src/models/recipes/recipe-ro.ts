@@ -1,10 +1,17 @@
-import { Ingredient } from './../../data/entities/ingredient.entity';
-import { Nutrition } from './../../data/entities/nutrition.entity';
-import { Subrecipe } from '../../data/entities/subrecipe.entity';
+import { IngredientRO } from './../ingredients/ingredient-ro';
+import { SubrecipeRO } from '../subrecipes/subrecipe-ro';
+import { INutrition } from '../../common/interfaces/nutrition';
 
 export interface RecipeRO {
+  id: string;
   title: string;
-  nutrition: Nutrition;
-  ingredients: Ingredient[];
-  subrecipes: Subrecipe[];
+  imageUrl: string;
+  notes: string;
+  measure: string;
+  amount: number;
+  created: Date;
+  category: string;
+  ingredients?: IngredientRO[];
+  subrecipes?: SubrecipeRO[];
+  nutrition: INutrition;
 }

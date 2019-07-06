@@ -29,12 +29,16 @@ export class RecipesController {
   }
 
   @Get(':id')
-  async getRecipeById(@Param('id') id: string) {
-    return await this.recipesService.getRecipeById(id);
+  async getRecipeById(@Param('id') id: string, @UserDec() user: User) {
+    return await this.recipesService.getRecipeByIdAndAuthor(id, user);
   }
 
   @Put(':id')
-  async updateRecipe(@Param('id') id: string, @Body(new ValidationPipe({ transform: true, whitelist: true })) data: UpdateRecipeDto, @UserDec() user: User) {
+  async updateRecipe(
+    @Param('id') id: string,
+    @Body(new ValidationPipe({ transform: true, whitelist: true })) data: UpdateRecipeDto,
+    @UserDec() user: User,
+  ) {
     return await this.recipesService.updateRecipeById(id, data, user.username);
   }
 

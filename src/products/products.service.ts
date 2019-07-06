@@ -27,7 +27,7 @@ export class ProductsService {
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.measures', 'measure')
       .leftJoinAndSelect('product.nutrition', 'nutrition')
-      .leftJoin('product.recipeProducts', 'recipeProducts')
+      .leftJoin('product.ingredients', 'ingredients')
       .addOrderBy('product.description', 'ASC');
 
     if (description) {
@@ -37,11 +37,14 @@ export class ProductsService {
       queryStr = queryStr.concat(`description=${description}&`);
     }
 
+
     if (foodGroup) {
-      queryBuilder.andWhere('LOWER(product.foodGroup) LIKE :foodGroup', {
-        foodGroup: `%${foodGroup.toLowerCase()}%`,
+      queryBuilder.innerJoinAndSelect('product.foodGroup', 'foodGroup', 'LOWER(foodGroup.description) LIKE :desription', {
+        desription: `%${foodGroup.toLowerCase()}%`,
       });
       queryStr = queryStr.concat(`foodGroup=${foodGroup}&`);
+    } else {
+      queryBuilder.leftJoinAndSelect('product.foodGroup', 'foodGroup');
     }
 
     if (limit) {
@@ -112,7 +115,7 @@ export class ProductsService {
         FAPU: product.nutrition.FAPU,
       };
 
-    const productRO = {
+    const productRO: ProductRO = {
       code: product.code,
       description: product.description,
       foodGroup: product.foodGroup.description,
