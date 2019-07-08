@@ -23,7 +23,7 @@ export class AuthService {
     }
     const isPasswordValid = await this.usersService.validatePassword(userData);
     if (!isPasswordValid) {
-      throw new UserBadRequest(`Passdowrd doesn't match`);
+      throw new UserBadRequest(`Password doesn't match`);
     }
     const userPayload: JwtPayload = { username: user.username };
 

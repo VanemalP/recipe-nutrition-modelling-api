@@ -25,9 +25,6 @@ import { UpdateRecipeDto } from '../models/recipes/update-reipe.dto';
 import { RecipesDto } from '../models/recipes/recipes.dto';
 import { RecipeRO } from '../models/recipes/recipe-ro';
 import { INutrition } from '../common/interfaces/nutrition';
-import { IngredientRO } from '../models/ingredients/ingredient-ro';
-import { SubrecipeRO } from '../models/subrecipes/subrecipe-ro';
-import { Nutrition } from '../data/entities/nutrition.entity';
 
 @Injectable()
 export class RecipesService {
@@ -43,6 +40,14 @@ export class RecipesService {
     const ingredientsData: CreateIngredientDto[] = data.ingredientsData;
     const subrecipesData: CreateSubrecipeDto[] = data.subrecipesData;
     const title: string = data.title;
+    const recipe = await this.recipeRepository.findOne({
+      where: {
+        title,
+      },
+    });
+    if (recipe) {
+      throw new RecipeBadRequest('Recipe with this title already exists');
+    }
     const category: string = data.category;
     const notes: string = data.notes;
     const imageUrl: string = data.imageUrl;
@@ -230,7 +235,7 @@ export class RecipesService {
     return this.recipeToRO(foundRecipe, true);
   }
 
-  async deleteRecipeById(id: string): Promise<{ message: string }> {
+  async deleteRecipeById(id: string, author: string): Promise<{ message: string }> {
     const recipeToDelete = await this.recipeRepository.findOne({
       where: {id},
     });
@@ -239,9 +244,14 @@ export class RecipesService {
       throw new RecipeNotFound('Recipe not found');
     }
 
+    const recipeAuthor = await recipeToDelete.author;
+    if (recipeAuthor.username !== author) {
+      throw new BadRequestException(`You can only delete your own recipes`);
+    }
+
     const derivedRecipes = await recipeToDelete.derivedRecipes;
     if (derivedRecipes.length > 0) {
-      const hasUndeltedRecipe = derivedRecipes.some((recipe) => recipe.isDeleted === false);
+      const hasUndeltedRecipe = derivedRecipes.some(recipe => recipe.isDeleted === false);
       if (hasUndeltedRecipe) {
         throw new RecipeBadRequest('This recipe is used in other recipe/s and can not be deleted');
       }
@@ -316,13 +326,13 @@ export class RecipesService {
     if (nutrient) {
       if (min && max) {
         queryStr = queryStr.concat(`nutrient=${nutrient}&min=${min}&max=${max}&`);
-        filteredRecipes = recipes.filter((recipe) => recipe.nutrition[nutrient].value >= min && recipe.nutrition[nutrient].value <= max);
+        filteredRecipes = recipes.filter(recipe => recipe.nutrition[nutrient].value >= min && recipe.nutrition[nutrient].value <= max);
       } else if (min) {
         queryStr = queryStr.concat(`nutrient=${nutrient}&min=${min}&`);
-        filteredRecipes = recipes.filter((recipe) => recipe.nutrition[nutrient].value >= min);
+        filteredRecipes = recipes.filter(recipe => recipe.nutrition[nutrient].value >= min);
       } else if (max) {
         queryStr = queryStr.concat(`nutrient=${nutrient}&max=${max}&`);
-        filteredRecipes = recipes.filter((recipe) => recipe.nutrition[nutrient].value <= max);
+        filteredRecipes = recipes.filter(recipe => recipe.nutrition[nutrient].value <= max);
       }
     }
 
@@ -384,80 +394,84 @@ export class RecipesService {
       notes: recipe.notes,
       measure: recipe.measure,
       amount: recipe.amount,
-      created: recipe.Created,
+      created: recipe.created,
       category: recipe.category.name,
       nutrition,
     };
 
     if (isFindOne) {
-      recipeRO.ingredients = recipe.ingredients.map((ingredient) => {
-        const ingrNutrition: INutrition = {
-          PROCNT: ingredient.product.nutrition.PROCNT,
-          FAT: ingredient.product.nutrition.FAT,
-          CHOCDF: ingredient.product.nutrition.CHOCDF,
-          ENERC_KCAL: ingredient.product.nutrition.ENERC_KCAL,
-          SUGAR: ingredient.product.nutrition.SUGAR,
-          FIBTG: ingredient.product.nutrition.FIBTG,
-          CA: ingredient.product.nutrition.CA,
-          FE: ingredient.product.nutrition.FE,
-          P: ingredient.product.nutrition.P,
-          K: ingredient.product.nutrition.K,
-          NA: ingredient.product.nutrition.NA,
-          VITA_IU: ingredient.product.nutrition.VITA_IU,
-          TOCPHA: ingredient.product.nutrition.TOCPHA,
-          VITD: ingredient.product.nutrition.VITD,
-          VITC: ingredient.product.nutrition.VITC,
-          VITB12: ingredient.product.nutrition.VITB12,
-          FOLAC: ingredient.product.nutrition.FOLAC,
-          CHOLE: ingredient.product.nutrition.CHOLE,
-          FATRN: ingredient.product.nutrition.FATRN,
-          FASAT: ingredient.product.nutrition.FASAT,
-          FAMS: ingredient.product.nutrition.FAMS,
-          FAPU: ingredient.product.nutrition.FAPU,
-        };
-        return {
-          id: ingredient.id,
-          product: ingredient.product.description,
-          unit: ingredient.unit,
-          quantity: ingredient.quantity,
-          nutrition: ingrNutrition,
-        };
-      });
+      recipeRO.ingredients = recipe.ingredients.map(ingredient => {
+        if (!ingredient.isDeleted) {
+          const ingrNutrition: INutrition = {
+            PROCNT: ingredient.product.nutrition.PROCNT,
+            FAT: ingredient.product.nutrition.FAT,
+            CHOCDF: ingredient.product.nutrition.CHOCDF,
+            ENERC_KCAL: ingredient.product.nutrition.ENERC_KCAL,
+            SUGAR: ingredient.product.nutrition.SUGAR,
+            FIBTG: ingredient.product.nutrition.FIBTG,
+            CA: ingredient.product.nutrition.CA,
+            FE: ingredient.product.nutrition.FE,
+            P: ingredient.product.nutrition.P,
+            K: ingredient.product.nutrition.K,
+            NA: ingredient.product.nutrition.NA,
+            VITA_IU: ingredient.product.nutrition.VITA_IU,
+            TOCPHA: ingredient.product.nutrition.TOCPHA,
+            VITD: ingredient.product.nutrition.VITD,
+            VITC: ingredient.product.nutrition.VITC,
+            VITB12: ingredient.product.nutrition.VITB12,
+            FOLAC: ingredient.product.nutrition.FOLAC,
+            CHOLE: ingredient.product.nutrition.CHOLE,
+            FATRN: ingredient.product.nutrition.FATRN,
+            FASAT: ingredient.product.nutrition.FASAT,
+            FAMS: ingredient.product.nutrition.FAMS,
+            FAPU: ingredient.product.nutrition.FAPU,
+          };
+          return {
+            id: ingredient.id,
+            product: ingredient.product.description,
+            unit: ingredient.unit,
+            quantity: ingredient.quantity,
+            nutrition: ingrNutrition,
+          };
+        }
+      }).filter(ingr => ingr !== undefined);
       recipeRO.subrecipes = await Promise.all(recipe.subrecipes.map(async (subrecipe) => {
-        const linkedRecipeId = (await subrecipe.linkedRecipe).id;
-        const linkedRecipe = await this.getRecipeById(linkedRecipeId);
-        const ingrNutrition: INutrition = {
-          PROCNT: linkedRecipe.nutrition.PROCNT,
-          FAT: linkedRecipe.nutrition.FAT,
-          CHOCDF: linkedRecipe.nutrition.CHOCDF,
-          ENERC_KCAL: linkedRecipe.nutrition.ENERC_KCAL,
-          SUGAR: linkedRecipe.nutrition.SUGAR,
-          FIBTG: linkedRecipe.nutrition.FIBTG,
-          CA: linkedRecipe.nutrition.CA,
-          FE: linkedRecipe.nutrition.FE,
-          P: linkedRecipe.nutrition.P,
-          K: linkedRecipe.nutrition.K,
-          NA: linkedRecipe.nutrition.NA,
-          VITA_IU: linkedRecipe.nutrition.VITA_IU,
-          TOCPHA: linkedRecipe.nutrition.TOCPHA,
-          VITD: linkedRecipe.nutrition.VITD,
-          VITC: linkedRecipe.nutrition.VITC,
-          VITB12: linkedRecipe.nutrition.VITB12,
-          FOLAC: linkedRecipe.nutrition.FOLAC,
-          CHOLE: linkedRecipe.nutrition.CHOLE,
-          FATRN: linkedRecipe.nutrition.FATRN,
-          FASAT: linkedRecipe.nutrition.FASAT,
-          FAMS: linkedRecipe.nutrition.FAMS,
-          FAPU: linkedRecipe.nutrition.FAPU,
-        };
-        return {
-          id: subrecipe.id,
-          recipe: linkedRecipe.title,
-          unit: subrecipe.unit,
-          quantity: subrecipe.quantity,
-          nutrition: ingrNutrition,
-        };
-      })).then(result => result);
+        if (!subrecipe.isDeleted) {
+          const linkedRecipeId = (await subrecipe.linkedRecipe).id;
+          const linkedRecipe = await this.getRecipeById(linkedRecipeId);
+          const ingrNutrition: INutrition = {
+            PROCNT: linkedRecipe.nutrition.PROCNT,
+            FAT: linkedRecipe.nutrition.FAT,
+            CHOCDF: linkedRecipe.nutrition.CHOCDF,
+            ENERC_KCAL: linkedRecipe.nutrition.ENERC_KCAL,
+            SUGAR: linkedRecipe.nutrition.SUGAR,
+            FIBTG: linkedRecipe.nutrition.FIBTG,
+            CA: linkedRecipe.nutrition.CA,
+            FE: linkedRecipe.nutrition.FE,
+            P: linkedRecipe.nutrition.P,
+            K: linkedRecipe.nutrition.K,
+            NA: linkedRecipe.nutrition.NA,
+            VITA_IU: linkedRecipe.nutrition.VITA_IU,
+            TOCPHA: linkedRecipe.nutrition.TOCPHA,
+            VITD: linkedRecipe.nutrition.VITD,
+            VITC: linkedRecipe.nutrition.VITC,
+            VITB12: linkedRecipe.nutrition.VITB12,
+            FOLAC: linkedRecipe.nutrition.FOLAC,
+            CHOLE: linkedRecipe.nutrition.CHOLE,
+            FATRN: linkedRecipe.nutrition.FATRN,
+            FASAT: linkedRecipe.nutrition.FASAT,
+            FAMS: linkedRecipe.nutrition.FAMS,
+            FAPU: linkedRecipe.nutrition.FAPU,
+          };
+          return {
+            id: subrecipe.id,
+            recipe: linkedRecipe.title,
+            unit: subrecipe.unit,
+            quantity: subrecipe.quantity,
+            nutrition: ingrNutrition,
+          };
+        }
+      })).then(result => result.filter(res => res !== undefined));
     }
 
     return recipeRO;

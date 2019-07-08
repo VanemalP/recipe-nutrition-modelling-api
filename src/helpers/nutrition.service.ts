@@ -37,37 +37,7 @@ export class NutritionService {
           measure => `${measure.amount.toString()} ${measure.measure}` === ingredient.unit,
         );
         const weightInGrams = measureOfIngredient.gramsPerMeasure * ingredient.quantity;
-
-        const nutrients = {
-          PROCNT: ingredient.product.nutrition.PROCNT,
-          FAT: ingredient.product.nutrition.FAT,
-          CHOCDF: ingredient.product.nutrition.CHOCDF,
-          ENERC_KCAL: ingredient.product.nutrition.ENERC_KCAL,
-          SUGAR: ingredient.product.nutrition.SUGAR,
-          FIBTG: ingredient.product.nutrition.FIBTG,
-          CA: ingredient.product.nutrition.CA,
-          FE: ingredient.product.nutrition.FE,
-          P: ingredient.product.nutrition.P,
-          K: ingredient.product.nutrition.K,
-          NA: ingredient.product.nutrition.NA,
-          VITA_IU: ingredient.product.nutrition.VITA_IU,
-          TOCPHA: ingredient.product.nutrition.TOCPHA,
-          VITD: ingredient.product.nutrition.VITD,
-          VITC: ingredient.product.nutrition.VITC,
-          VITB12: ingredient.product.nutrition.VITB12,
-          FOLAC: ingredient.product.nutrition.FOLAC,
-          CHOLE: ingredient.product.nutrition.CHOLE,
-          FATRN: ingredient.product.nutrition.FATRN,
-          FASAT: ingredient.product.nutrition.FASAT,
-          FAMS: ingredient.product.nutrition.FAMS,
-          FAPU: ingredient.product.nutrition.FAPU,
-        };
-
-        const nutrientNames = Object.keys(nutrients);
-        nutrientNames.forEach((nutrientName: NutrientsEnum) => {
-          nutrients[nutrientName].value =
-            nutrients[nutrientName].value / 100 * weightInGrams;
-        });
+        const nutrients = this.getNutrients(ingredient.product.nutrition, weightInGrams);
 
         return {nutrients, weight: weightInGrams};
       }
@@ -92,41 +62,11 @@ export class NutritionService {
     const calculatedNutrients = await Promise.all(data.map(async (subrecipe) => {
       if (!subrecipe.subrecipe.isDeleted) {
         const weightInGrams = subrecipe.linkedRecipe.amount * subrecipe.subrecipe.quantity;
-
-        const nutrients = {
-          PROCNT: subrecipe.linkedRecipe.nutrition.PROCNT,
-          FAT: subrecipe.linkedRecipe.nutrition.FAT,
-          CHOCDF: subrecipe.linkedRecipe.nutrition.CHOCDF,
-          ENERC_KCAL: subrecipe.linkedRecipe.nutrition.ENERC_KCAL,
-          SUGAR: subrecipe.linkedRecipe.nutrition.SUGAR,
-          FIBTG: subrecipe.linkedRecipe.nutrition.FIBTG,
-          CA: subrecipe.linkedRecipe.nutrition.CA,
-          FE: subrecipe.linkedRecipe.nutrition.FE,
-          P: subrecipe.linkedRecipe.nutrition.P,
-          K: subrecipe.linkedRecipe.nutrition.K,
-          NA: subrecipe.linkedRecipe.nutrition.NA,
-          VITA_IU: subrecipe.linkedRecipe.nutrition.VITA_IU,
-          TOCPHA: subrecipe.linkedRecipe.nutrition.TOCPHA,
-          VITD: subrecipe.linkedRecipe.nutrition.VITD,
-          VITC: subrecipe.linkedRecipe.nutrition.VITC,
-          VITB12: subrecipe.linkedRecipe.nutrition.VITB12,
-          FOLAC: subrecipe.linkedRecipe.nutrition.FOLAC,
-          CHOLE: subrecipe.linkedRecipe.nutrition.CHOLE,
-          FATRN: subrecipe.linkedRecipe.nutrition.FATRN,
-          FASAT: subrecipe.linkedRecipe.nutrition.FASAT,
-          FAMS: subrecipe.linkedRecipe.nutrition.FAMS,
-          FAPU: subrecipe.linkedRecipe.nutrition.FAPU,
-        };
-
-        const nutrientNames = Object.keys(nutrients);
-        nutrientNames.forEach((nutrientName: NutrientsEnum) => {
-          nutrients[nutrientName].value =
-          nutrients[nutrientName].value / 100 * weightInGrams;
-        });
+        const nutrients = this.getNutrients(subrecipe.linkedRecipe.nutrition, weightInGrams);
 
         return {nutrients, weight: weightInGrams};
       }
-    })).then(result => result.filter((item) => item !== undefined));
+    })).then(result => result.filter(item => item !== undefined));
 
     if (calculatedNutrients.length > 0) {
       const nutrs = calculatedNutrients.reduce((acc, curr) => {
@@ -181,5 +121,40 @@ export class NutritionService {
     }
 
     return foundNutrition;
+  }
+
+  private getNutrients(itemNutrition: Nutrition, weightInGrams: number) {
+    const nutrients = {
+      PROCNT: itemNutrition.PROCNT,
+      FAT: itemNutrition.FAT,
+      CHOCDF: itemNutrition.CHOCDF,
+      ENERC_KCAL: itemNutrition.ENERC_KCAL,
+      SUGAR: itemNutrition.SUGAR,
+      FIBTG: itemNutrition.FIBTG,
+      CA: itemNutrition.CA,
+      FE: itemNutrition.FE,
+      P: itemNutrition.P,
+      K: itemNutrition.K,
+      NA: itemNutrition.NA,
+      VITA_IU: itemNutrition.VITA_IU,
+      TOCPHA: itemNutrition.TOCPHA,
+      VITD: itemNutrition.VITD,
+      VITC: itemNutrition.VITC,
+      VITB12: itemNutrition.VITB12,
+      FOLAC: itemNutrition.FOLAC,
+      CHOLE: itemNutrition.CHOLE,
+      FATRN: itemNutrition.FATRN,
+      FASAT: itemNutrition.FASAT,
+      FAMS: itemNutrition.FAMS,
+      FAPU: itemNutrition.FAPU,
+    };
+
+    const nutrientNames = Object.keys(nutrients);
+    nutrientNames.forEach((nutrientName: NutrientsEnum) => {
+      nutrients[nutrientName].value =
+      nutrients[nutrientName].value / 100 * weightInGrams;
+    });
+
+    return nutrients;
   }
 }

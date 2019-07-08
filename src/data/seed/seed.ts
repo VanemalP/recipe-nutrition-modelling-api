@@ -77,7 +77,7 @@ const main = async () => {
       measureInGr.product = Promise.resolve(product);
       await measureRepository.save(measureInGr);
 
-      const measures = weight.filter((wght) => wght.NDB_No === p.NDB_No);
+      const measures = weight.filter(wght => wght.NDB_No === p.NDB_No);
 
       await asyncForEach(measures, async (m) => {
         const measure = new Measure();
@@ -95,7 +95,7 @@ const main = async () => {
       const nutrition = new Nutrition();
       nutrientDefinition.forEach((n) => {
         const code = n.Nutr_no;
-        const nutriData = nutrientData.find((nutr) => (+nutr.Nutr_No === code && +nutr.NDB_No === p.NDB_No));
+        const nutriData = nutrientData.find(nutr => (+nutr.Nutr_No === code && +nutr.NDB_No === p.NDB_No));
         let value;
         if (nutriData === undefined) {
           value = 0;

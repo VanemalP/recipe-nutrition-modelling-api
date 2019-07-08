@@ -37,7 +37,6 @@ export class ProductsService {
       queryStr = queryStr.concat(`description=${description}&`);
     }
 
-
     if (foodGroup) {
       queryBuilder.innerJoinAndSelect('product.foodGroup', 'foodGroup', 'LOWER(foodGroup.description) LIKE :desription', {
         desription: `%${foodGroup.toLowerCase()}%`,
@@ -53,10 +52,10 @@ export class ProductsService {
     }
 
     const products =  await queryBuilder.getMany();
-    const productsROArr = products.map((prod) => this.productToRO(prod));
+    const productsROArr = products.map(prod => this.productToRO(prod));
 
     const total =  await queryBuilder.getCount();
-    const isNext = limit ? route && (total / limit >= page) : false;
+    const isNext = limit ? route && (total / limit > page) : false;
     const isPrevious = route && page > 1;
     const productsToReturn = new ProductsDto();
     productsToReturn.products = productsROArr;
@@ -82,7 +81,7 @@ export class ProductsService {
   }
 
   private productToRO(product: Product): ProductRO {
-    const measures: IMeasure[] = product.measures.map((msr) => {
+    const measures: IMeasure[] = product.measures.map(msr => {
       const measureToReturn: IMeasure = {
         measure: msr.measure,
         gramsPerMeasure: msr.gramsPerMeasure,

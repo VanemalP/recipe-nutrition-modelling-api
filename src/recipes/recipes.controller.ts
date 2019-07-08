@@ -7,7 +7,7 @@ import { User } from './../data/entities/user.entity';
 import { Controller, UseGuards, Post, Body, Param, Get, Delete, UseFilters, Put, ValidationPipe, Query } from '@nestjs/common';
 import { RecipesService } from './recipes.service';
 import { User as UserDec } from '../decorators/user.decorator';
-import { UpdateRecipeDto } from '../models/recipes/update-reipe.dto';
+import { UpdateRecipeDto } from '../models/recipes/update-recipe.dto';
 import { async } from 'rxjs/internal/scheduler/async';
 
 @UseGuards(AuthGuard())
@@ -43,7 +43,7 @@ export class RecipesController {
   }
 
   @Delete(':id')
-  async deleteRecipeById(@Param('id') id: string): Promise<{ message: string }> {
-    return await this.recipesService.deleteRecipeById(id);
+  async deleteRecipeById(@Param('id') id: string, @UserDec() user: User): Promise<{ message: string }> {
+    return await this.recipesService.deleteRecipeById(id, user.username);
   }
 }
