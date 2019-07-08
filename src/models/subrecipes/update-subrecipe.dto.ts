@@ -1,6 +1,7 @@
 import { IsInt, IsOptional, IsString } from 'class-validator';
 
 export class UpdateSubrecipeDto {
+  @IsString()
   id: string;
 
   @IsOptional()
@@ -11,5 +12,6 @@ export class UpdateSubrecipeDto {
   @IsString()
   unit?: string;
 
+  @IsOptional()
   isDeleted?: boolean;
 }
