@@ -51,7 +51,6 @@ export class IngredientsService {
     const ingredientToUpdate = await this.findIngredientById(updateData.id);
 
     if (updateData.isDeleted) {
-      console.log('delete ingredient');
       ingredientToUpdate.isDeleted = updateData.isDeleted;
     }
     if (updateData.quantity) {

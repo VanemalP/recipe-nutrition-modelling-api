@@ -21,7 +21,7 @@ import { RecipeBadRequest } from '../common/exeptions/recipe-bad-request';
 import { CategoriesService } from '../helpers/categories.service';
 import { UpdateIngredientDto } from '../models/ingredients/update-ingredient.dto';
 import { UpdateSubrecipeDto } from '../models/subrecipes/update-subrecipe.dto';
-import { UpdateRecipeDto } from '../models/recipes/update-reipe.dto';
+import { UpdateRecipeDto } from '../models/recipes/update-recipe.dto';
 import { RecipesDto } from '../models/recipes/recipes.dto';
 import { RecipeRO } from '../models/recipes/recipe-ro';
 import { INutrition } from '../common/interfaces/nutrition';
@@ -201,6 +201,8 @@ export class RecipesService {
       const recipeNutrition = await this.nutritionService.updateNutrition(recipeNutritionToUpdate, allNutrients);
       recipeToUpdate.nutrition = recipeNutrition;
       recipeToUpdate.amount = allNutrients.weight;
+    } else {
+      throw new RecipeBadRequest('Recipe can not be empty');
     }
 
     return await this.recipeRepository.save(recipeToUpdate);
@@ -261,14 +263,18 @@ export class RecipesService {
       const ingredients = recipeToDelete.ingredients;
       if (ingredients.length > 0) {
         await this.asyncForEach(ingredients, async (ingredient: Ingredient) => {
-          await this.ingredientsService.deleteIngredientByRecipeId(ingredient.id);
+          if (!ingredient.isDeleted) {
+            await this.ingredientsService.deleteIngredientByRecipeId(ingredient.id);
+          }
         });
       }
 
       const subrecipes = recipeToDelete.subrecipes;
       if (subrecipes.length > 0) {
         await this.asyncForEach(subrecipes, async (subrecipe: Subrecipe) => {
-          await this.subrecipesService.deleteSubrecipe(subrecipe.id);
+          if (!subrecipe.isDeleted) {
+            await this.subrecipesService.deleteSubrecipe(subrecipe.id);
+          }
         });
       }
 
