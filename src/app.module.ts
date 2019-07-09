@@ -9,6 +9,8 @@ import { CoreModule } from './core/core.module';
 import { UsersModule } from './users/users.module';
 import { ProductsModule } from './products/products.module';
 import { RecipesModule } from './recipes/recipes.module';
+import { FoodGroupsModule } from './food-group/food-groups.module';
+import { CategoriesModule } from './categories/categories.module';
 
 @Module({
   imports: [
@@ -31,6 +33,8 @@ import { RecipesModule } from './recipes/recipes.module';
     }),
     ProductsModule,
     RecipesModule,
+    FoodGroupsModule,
+    CategoriesModule,
   ],
   controllers: [AppController],
   providers: [AppService],

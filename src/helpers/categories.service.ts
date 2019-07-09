@@ -24,4 +24,11 @@ export class CategoriesService {
 
     return foundCategory;
   }
+
+  async getCategories(): Promise<string[]> {
+    const categories = await this.categoryRepository.find();
+    const categoriesRO = await Promise.all(categories.map(category => category.name));
+
+    return categoriesRO;
+  }
 }

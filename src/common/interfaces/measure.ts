@@ -1,4 +1,4 @@
 export interface IMeasure {
-  measure: string,
-  gramsPerMeasure: number,
+  measure: string;
+  gramsPerMeasure: number;
 }
