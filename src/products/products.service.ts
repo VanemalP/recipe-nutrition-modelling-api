@@ -38,8 +38,8 @@ export class ProductsService {
     }
 
     if (foodGroup) {
-      queryBuilder.innerJoinAndSelect('product.foodGroup', 'foodGroup', 'LOWER(foodGroup.description) LIKE :desription', {
-        desription: `%${foodGroup.toLowerCase()}%`,
+      queryBuilder.innerJoinAndSelect('product.foodGroup', 'foodGroup', 'LOWER(foodGroup.description) LIKE :fgDescription', {
+        fgDescription: `%${foodGroup.toLowerCase()}%`,
       });
       queryStr = queryStr.concat(`foodGroup=${foodGroup}&`);
     } else {
