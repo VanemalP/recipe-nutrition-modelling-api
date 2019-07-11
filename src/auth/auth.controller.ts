@@ -9,6 +9,7 @@ import {
   Get,
   UseGuards,
   UseFilters,
+  Delete,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UsersService } from '../core/services/users.service';
@@ -42,7 +43,7 @@ export class AuthController {
   }
 
   @UseGuards(AuthGuard())
-  @Get('logout')
+  @Delete('logout')
   logout(@Token() token: string): Promise<{ message: string }> {
       return this.authService.logout(token);
   }

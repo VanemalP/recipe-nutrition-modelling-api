@@ -25,7 +25,7 @@ export class AuthService {
     if (!isPasswordValid) {
       throw new UserBadRequest(`Password doesn't match`);
     }
-    const userPayload: JwtPayload = { username: user.username };
+    const userPayload: JwtPayload = { username: user.username, lastName: user.lastName };
 
     return await this.jwtService.sign(userPayload);
   }
