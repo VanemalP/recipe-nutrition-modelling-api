@@ -18,9 +18,7 @@ export class AuthService {
   async signIn(userData: LoginUserDto): Promise<string> {
     const { username } = userData;
     const user = await this.usersService.signIn(username);
-    if (!user) {
-      throw new UserBadRequest(`No such user`);
-    }
+
     const isPasswordValid = await this.usersService.validatePassword(userData);
     if (!isPasswordValid) {
       throw new UserBadRequest(`Password doesn't match`);

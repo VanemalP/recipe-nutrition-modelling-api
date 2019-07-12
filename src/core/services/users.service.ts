@@ -43,7 +43,7 @@ export class UsersService {
       where: { username },
     });
     if (!user) {
-      throw new UserNotFound(`User with username ${username} does not exist!`);
+      throw new UserBadRequest(`User with username ${username} does not exist!`);
     }
 
     return user;
