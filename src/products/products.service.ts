@@ -83,11 +83,15 @@ export class ProductsService {
   private productToRO(product: Product): ProductRO {
     const measures: IMeasure[] = product.measures.map(msr => {
       const measureToReturn: IMeasure = {
-        measure: msr.measure,
+        measure: `${msr.amount} ${msr.measure}`,
         gramsPerMeasure: msr.gramsPerMeasure,
       };
 
       return measureToReturn;
+    }).sort((a, b) => {
+      if (a.measure < b.measure) { return -1; }
+      if (a.measure > b.measure) { return 1; }
+      return 0;
     });
     const nutrition: INutrition = {
         PROCNT: product.nutrition.PROCNT,
