@@ -32,5 +32,6 @@ export class UpdateRecipeDto {
   imageUrl?: string;
 
   @IsOptional()
+  @IsString()
   notes?: string;
 }

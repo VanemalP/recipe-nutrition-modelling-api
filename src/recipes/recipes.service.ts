@@ -37,8 +37,8 @@ export class RecipesService {
   ) {}
 
   async createRecipe(data: CreateRecipeDto, author: User) {
-    const ingredientsData: CreateIngredientDto[] = data.ingredientsData;
-    const subrecipesData: CreateSubrecipeDto[] = data.subrecipesData;
+    const ingredientsData: CreateIngredientDto[] = data.newIngredientsData;
+    const subrecipesData: CreateSubrecipeDto[] = data.newSubrecipesData;
     const title: string = data.title;
     const recipe = await this.recipeRepository.findOne({
       where: {

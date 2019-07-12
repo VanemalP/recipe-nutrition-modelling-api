@@ -5,9 +5,10 @@ import { CreateSubrecipeDto } from '../subrecipes/create-subrecipe.dto';
 
 export class CreateRecipeDto {
   @IsOptional()
-  ingredientsData?: CreateIngredientDto[];
+  newIngredientsData?: CreateIngredientDto[];
+
   @IsOptional()
-  subrecipesData?: CreateSubrecipeDto[];
+  newSubrecipesData?: CreateSubrecipeDto[];
 
   @IsString()
   @IsNotEmpty()
@@ -20,6 +21,8 @@ export class CreateRecipeDto {
   @IsOptional()
   @IsUrl()
   imageUrl?: string;
+
   @IsOptional()
+  @IsString()
   notes?: string;
 }
