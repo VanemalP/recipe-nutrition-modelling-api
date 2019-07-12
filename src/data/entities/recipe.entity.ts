@@ -34,7 +34,7 @@ export class Recipe {
   /**
    * Measure of the recipe
    */
-  @Column({default: 'g'})
+  @Column({default: '1 g'})
   measure: string;
   /**
    * Weight in grams of the recipe
