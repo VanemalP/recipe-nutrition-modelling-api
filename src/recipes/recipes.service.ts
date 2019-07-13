@@ -37,8 +37,8 @@ export class RecipesService {
   ) {}
 
   async createRecipe(data: CreateRecipeDto, author: User) {
-    const ingredientsData: CreateIngredientDto[] = data.newIngredientsData;
-    const subrecipesData: CreateSubrecipeDto[] = data.newSubrecipesData;
+    const ingredientsData: CreateIngredientDto[] = [...data.newIngredientsData];
+    const subrecipesData: CreateSubrecipeDto[] = [...data.newSubrecipesData];
     const title: string = data.title;
     const recipe = await this.recipeRepository.findOne({
       where: {
@@ -70,7 +70,7 @@ export class RecipesService {
     let ingredientsTotalNutrition: ITotalNutrition;
     let subrecipesTotalNutrition: ITotalNutrition;
 
-    if (ingredientsData) {
+    if (ingredientsData.length > 0) {
       const recipeIngredients = await Promise.all(ingredientsData.map(async (ingredientData) => {
         return await this.ingredientsService.createIngredient(ingredientData, savedRecipe);
       }));
@@ -78,7 +78,7 @@ export class RecipesService {
       allNutrientsArr.push(ingredientsTotalNutrition);
     }
 
-    if (subrecipesData) {
+    if (subrecipesData.length > 0) {
       const recipeSubrecipes = await Promise.all(subrecipesData.map(async (subrecipeData) => {
         const linkedRecipe = await this.getRecipeById(subrecipeData.recipeId);
         return {subrecipe: await this.subrecipesService.createSubrecipe(subrecipeData, linkedRecipe, savedRecipe), linkedRecipe};
@@ -88,11 +88,12 @@ export class RecipesService {
     }
 
     const allNutrients = allNutrientsArr.reduce((acc, curr) => {
-      const nutrientNames = Object.keys(curr.nutrients);
+      const nutrientNames = Object.keys(acc.nutrients);
       nutrientNames.forEach((nutrientName: NutrientsEnum) => {
         acc.nutrients[nutrientName].value += curr.nutrients[nutrientName].value;
       });
       acc.weight += curr.weight;
+
       return acc;
     });
 
@@ -139,7 +140,7 @@ export class RecipesService {
     let recipeIngredientsTotalNutrition: ITotalNutrition;
     let recipeSubrecipesTotalNutrition: ITotalNutrition;
 
-    if (newIngredientsData) {
+    if (newIngredientsData.length > 0) {
       await Promise.all(newIngredientsData.map(async (ingredientData) => {
         const newIngredient = await this.ingredientsService.createIngredient(ingredientData, recipeToUpdate);
         recipeToUpdate.ingredients = [...await recipeToUpdate.ingredients, newIngredient];
@@ -148,13 +149,13 @@ export class RecipesService {
       }));
     }
 
-    if (updateIngredientsData) {
+    if (updateIngredientsData.length > 0) {
       await Promise.all(updateIngredientsData.map(async (ingredientData) => {
         return await this.ingredientsService.updateIngredient(ingredientData);
       }));
     }
 
-    if (newSubrecipesData) {
+    if (newSubrecipesData.length > 0) {
       await Promise.all(newSubrecipesData.map(async (subrecipeData) => {
         const linkedRecipe = await this.getRecipeById(subrecipeData.recipeId);
         const newSubrecipe = await this.subrecipesService.createSubrecipe(subrecipeData, linkedRecipe, recipeToUpdate);
@@ -164,7 +165,7 @@ export class RecipesService {
       }));
     }
 
-    if (updateSubrecipesData) {
+    if (updateSubrecipesData.length > 0) {
       await Promise.all(updateSubrecipesData.map(async (subrecipeData) => {
         return await this.subrecipesService.updateSubrecipe(subrecipeData);
       }));
@@ -189,11 +190,12 @@ export class RecipesService {
 
     if (allNutrientsArr.length > 0) {
       const allNutrients = allNutrientsArr.reduce((acc, curr) => {
-        const nutrientNames = Object.keys(curr.nutrients);
+        const nutrientNames = Object.keys(acc.nutrients);
         nutrientNames.forEach((nutrientName: NutrientsEnum) => {
           acc.nutrients[nutrientName].value += curr.nutrients[nutrientName].value;
         });
         acc.weight += curr.weight;
+  
         return acc;
       });
 
@@ -398,7 +400,7 @@ export class RecipesService {
       title: recipe.title,
       imageUrl: recipe.imageURL,
       notes: recipe.notes,
-      measure: recipe.measure,
+      measure: `${recipe.amount} ${recipe.measure}`,
       amount: recipe.amount,
       created: recipe.created,
       category: recipe.category.name,
