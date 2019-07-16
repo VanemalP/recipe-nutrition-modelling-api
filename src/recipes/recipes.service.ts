@@ -25,6 +25,7 @@ import { UpdateRecipeDto } from '../models/recipes/update-recipe.dto';
 import { RecipesDto } from '../models/recipes/recipes.dto';
 import { RecipeRO } from '../models/recipes/recipe-ro';
 import { INutrition } from '../common/interfaces/nutrition';
+import { IMeasure } from '../common/interfaces/measure';
 
 @Injectable()
 export class RecipesService {
@@ -401,7 +402,6 @@ export class RecipesService {
       imageUrl: recipe.imageURL,
       notes: recipe.notes,
       measure: `${recipe.amount} ${recipe.measure}`,
-      amount: recipe.amount,
       created: recipe.created,
       category: recipe.category.name,
       nutrition,
@@ -434,9 +434,22 @@ export class RecipesService {
             FAMS: ingredient.product.nutrition.FAMS,
             FAPU: ingredient.product.nutrition.FAPU,
           };
+          const ingrMeasures: IMeasure[] = ingredient.product.measures.map(msr => {
+            const measureToReturn: IMeasure = {
+              measure: `${msr.amount} ${msr.measure}`,
+              gramsPerMeasure: msr.gramsPerMeasure,
+            };
+            return measureToReturn;
+          }).sort((a, b) => {
+            if (a.measure < b.measure) { return -1; }
+            if (a.measure > b.measure) { return 1; }
+            return 0;
+          });
+
           return {
             id: ingredient.id,
             product: ingredient.product.description,
+            measures: ingrMeasures,
             unit: ingredient.unit,
             quantity: ingredient.quantity,
             nutrition: ingrNutrition,
