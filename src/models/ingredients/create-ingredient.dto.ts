@@ -1,11 +1,11 @@
-import { IsNotEmpty, IsInt, IsString } from 'class-validator';
+import { IsNotEmpty, IsInt, IsString, IsNumber } from 'class-validator';
 
 export class CreateIngredientDto {
   @IsInt()
   productCode: number;
 
   @IsNotEmpty()
-  @IsInt()
+  @IsNumber()
   quantity: number;
 
   @IsNotEmpty()

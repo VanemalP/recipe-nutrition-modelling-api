@@ -8,6 +8,7 @@ export interface RecipeRO {
   imageUrl: string;
   notes: string;
   measure: string;
+  gramsPerMeasure: number;
   created: Date;
   category: string;
   ingredients?: IngredientRO[];

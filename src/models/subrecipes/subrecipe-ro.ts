@@ -4,6 +4,7 @@ export interface SubrecipeRO {
   id: string;
   recipe: string;
   unit: string;
+  gramsPerMeasure: number;
   quantity: number;
   nutrition: INutrition;
 }

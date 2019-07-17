@@ -20,7 +20,7 @@ export class Ingredient {
   /**
    * Quantity of the product
    */
-  @Column({ default: 0 })
+  @Column('double', {default: 0})
   quantity: number;
   /**
    * Unit of the product

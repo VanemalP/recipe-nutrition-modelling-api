@@ -101,6 +101,7 @@ export class RecipesService {
     const recipeNutrition = await this.nutritionService.createNutrition(allNutrients);
     savedRecipe.nutrition = recipeNutrition;
     savedRecipe.amount = allNutrients.weight;
+    savedRecipe.measure =  `${allNutrients.weight} g`;
 
     return await this.recipeRepository.save(savedRecipe);
   }
@@ -204,6 +205,7 @@ export class RecipesService {
       const recipeNutrition = await this.nutritionService.updateNutrition(recipeNutritionToUpdate, allNutrients);
       recipeToUpdate.nutrition = recipeNutrition;
       recipeToUpdate.amount = allNutrients.weight;
+      recipeToUpdate.measure =  `${allNutrients.weight} g`;
     } else {
       throw new RecipeBadRequest('Recipe can not be empty');
     }
@@ -401,7 +403,8 @@ export class RecipesService {
       title: recipe.title,
       imageUrl: recipe.imageURL,
       notes: recipe.notes,
-      measure: `${recipe.amount} ${recipe.measure}`,
+      measure: recipe.measure,
+      gramsPerMeasure: recipe.amount,
       created: recipe.created,
       category: recipe.category.name,
       nutrition,
@@ -488,6 +491,7 @@ export class RecipesService {
             id: subrecipe.id,
             recipe: linkedRecipe.title,
             unit: subrecipe.unit,
+            gramsPerMeasure: linkedRecipe.amount,
             quantity: subrecipe.quantity,
             nutrition: ingrNutrition,
           };
