@@ -39,7 +39,7 @@ export class Recipe {
   /**
    * Weight in grams of the recipe
    */
-  @Column('double', {default: 0})
+  @Column('decimal', {default: 0})
   amount: number;
   /**
    * Created on

@@ -197,7 +197,7 @@ export class RecipesService {
           acc.nutrients[nutrientName].value += curr.nutrients[nutrientName].value;
         });
         acc.weight += curr.weight;
-  
+
         return acc;
       });
 
@@ -337,15 +337,28 @@ export class RecipesService {
     if (nutrient) {
       if (min && max) {
         queryStr = queryStr.concat(`nutrient=${nutrient}&min=${min}&max=${max}&`);
-        filteredRecipes = recipes.filter(recipe => recipe.nutrition[nutrient].value >= min && recipe.nutrition[nutrient].value <= max);
+        filteredRecipes = recipes.filter(recipe => recipe.nutrition[nutrient].value / 100 * recipe.amount >= min && recipe.nutrition[nutrient].value  / 100 * recipe.amount <= max);
       } else if (min) {
         queryStr = queryStr.concat(`nutrient=${nutrient}&min=${min}&`);
-        filteredRecipes = recipes.filter(recipe => recipe.nutrition[nutrient].value >= min);
+        filteredRecipes = recipes.filter(recipe => recipe.nutrition[nutrient].value / 100 * recipe.amount >= min);
       } else if (max) {
         queryStr = queryStr.concat(`nutrient=${nutrient}&max=${max}&`);
-        filteredRecipes = recipes.filter(recipe => recipe.nutrition[nutrient].value <= max);
+        filteredRecipes = recipes.filter(recipe => recipe.nutrition[nutrient].value / 100 * recipe.amount <= max);
       }
     }
+    // let filteredRecipes: Recipe[] = recipes;
+    // if (nutrient) {
+    //   if (min && max) {
+    //     queryStr = queryStr.concat(`nutrient=${nutrient}&min=${min}&max=${max}&`);
+    //     filteredRecipes = recipes.filter(recipe => recipe.nutrition[nutrient].value >= min && recipe.nutrition[nutrient].value <= max);
+    //   } else if (min) {
+    //     queryStr = queryStr.concat(`nutrient=${nutrient}&min=${min}&`);
+    //     filteredRecipes = recipes.filter(recipe => recipe.nutrition[nutrient].value >= min);
+    //   } else if (max) {
+    //     queryStr = queryStr.concat(`nutrient=${nutrient}&max=${max}&`);
+    //     filteredRecipes = recipes.filter(recipe => recipe.nutrition[nutrient].value <= max);
+    //   }
+    // }
 
     const recipesROArr = await Promise.all(filteredRecipes.map(recipe => this.recipeToRO(recipe, false))).then(result => result);
 
