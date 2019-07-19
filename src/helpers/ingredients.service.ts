@@ -21,15 +21,18 @@ export class IngredientsService {
   async createIngredient(ingredientData: CreateIngredientDto, recipe: Recipe): Promise<Ingredient> {
     const product = await this.productsService.getProductByCode(ingredientData.productCode);
     const ingredient = new Ingredient();
-
+console.log('incoming',ingredientData.quantity)
     ingredient.product = product;
     ingredient.quantity = ingredientData.quantity;
+console.log('ingredient',ingredient.quantity)
     ingredient.unit = ingredientData.unit;
     if (!recipe.ingredients) {
       ingredient.recipe = Promise.resolve(recipe);
     }
-
-    return await this.ingredientRepository.save(ingredient);
+const saved = await this.ingredientRepository.save(ingredient)
+console.log(saved);
+    return await this.ingredientRepository.save(saved);
+    // return await this.ingredientRepository.save(ingredient);
   }
 
   async findIngredientById(id: string): Promise<Ingredient> {
