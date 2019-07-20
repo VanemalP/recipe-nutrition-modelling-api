@@ -15,11 +15,12 @@ export class SubrecipesService {
 
   async createSubrecipe(subrecipeData: CreateSubrecipeDto, linkedRecipe: Recipe, recipe: Recipe) {
     const subrecipe = new Subrecipe();
-
     subrecipe.linkedRecipe = Promise.resolve(linkedRecipe);
     subrecipe.quantity = subrecipeData.quantity;
     subrecipe.unit = subrecipeData.unit;
     subrecipe.recipe = Promise.resolve(recipe);
+    console.log('subrecipeData', subrecipeData);
+    console.log('subrecipe', subrecipe);
     return await this.subrecipeRepository.save(subrecipe);
   }
 
