@@ -161,7 +161,7 @@ export class RecipesService {
       await Promise.all(newSubrecipesData.map(async (subrecipeData) => {
         const linkedRecipe = await this.getRecipeById(subrecipeData.recipeId);
         const newSubrecipe = await this.subrecipesService.createSubrecipe(subrecipeData, linkedRecipe, recipeToUpdate);
-
+        recipeToUpdate.subrecipes = [...await recipeToUpdate.subrecipes, newSubrecipe];
         return newSubrecipe;
       }));
     }
