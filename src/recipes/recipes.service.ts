@@ -300,6 +300,8 @@ export class RecipesService {
     const nutrient = query.nutrient ? query.nutrient : '';
     const min = query.min ? +query.min : 0;
     const max = query.max ? +query.max : 0;
+    const orderBy = query.orderBy ? query.orderBy : 'recipe.created';
+    const order = query.order ? query.order : 'DESC';
     let limit =  query.limit ? +query.limit : 0;
     limit = limit > 100 ? 100 : limit;
     let page = query.page ? +query.page : 1;
@@ -313,7 +315,7 @@ export class RecipesService {
       .innerJoin('recipe.author', 'author', 'author.username = :username', {
         username: user.username,
       })
-      .addOrderBy('recipe.created', 'DESC')
+      .addOrderBy(orderBy, order)
       .where('recipe.isDeleted = :isDeleted', { isDeleted: false});
 
     if (title) {
@@ -345,6 +347,8 @@ export class RecipesService {
         filteredRecipes = recipes.filter(recipe => recipe.nutrition[nutrient].value / 100 * recipe.amount <= max);
       }
     }
+
+    queryStr = queryStr.concat(`orderBy=${orderBy}&order=${order}`);
 
     // Filter precipes by nutrient value per 100g
 

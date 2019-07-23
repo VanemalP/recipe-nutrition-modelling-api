@@ -6,4 +6,6 @@ export class RecipeQueryDto {
   nutrient?: string;
   page?: string;
   limit?: string;
+  orderBy?: 'recipe.title' | 'recipe.created';
+  order?: 'ASC' | 'DESC';
 }
