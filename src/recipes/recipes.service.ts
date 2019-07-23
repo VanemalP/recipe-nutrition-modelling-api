@@ -313,7 +313,7 @@ export class RecipesService {
       .innerJoin('recipe.author', 'author', 'author.username = :username', {
         username: user.username,
       })
-      .addOrderBy('recipe.title', 'ASC')
+      .addOrderBy('recipe.created', 'DESC')
       .where('recipe.isDeleted = :isDeleted', { isDeleted: false});
 
     if (title) {
@@ -345,6 +345,9 @@ export class RecipesService {
         filteredRecipes = recipes.filter(recipe => recipe.nutrition[nutrient].value / 100 * recipe.amount <= max);
       }
     }
+
+    // Filter precipes by nutrient value per 100g
+
     // let filteredRecipes: Recipe[] = recipes;
     // if (nutrient) {
     //   if (min && max) {

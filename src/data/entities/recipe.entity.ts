@@ -39,7 +39,7 @@ export class Recipe {
   /**
    * Weight in grams of the recipe
    */
-  @Column({ type: 'decimal', precision: 5, scale: 1, default: 0 })
+  @Column({ type: 'decimal', precision: 7, scale: 1, default: 0 })
   amount: number;
   /**
    * Created on

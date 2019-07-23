@@ -25,8 +25,6 @@ export class RecipesController {
 
   @Post()
   async createRecipe(@Body(new ValidationPipe({ transform: true, whitelist: true })) data: CreateRecipeDto, @UserDec() user: User) {
-    console.log('contrler create recipe data', data);
-    
     return await this.recipesService.createRecipe(data, user);
   }
 

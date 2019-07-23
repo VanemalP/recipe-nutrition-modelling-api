@@ -20,7 +20,7 @@ export class Subrecipe {
   /**
    * Quantity of the subrecipe
    */
-  @Column({ type: 'decimal', precision: 5, scale: 1, default: 0 })
+  @Column({ type: 'decimal', precision: 7, scale: 1, default: 0 })
   quantity: number;
   /**
    * Unit of the subrecipe
