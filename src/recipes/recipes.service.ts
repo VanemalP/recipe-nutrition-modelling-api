@@ -38,8 +38,8 @@ export class RecipesService {
   ) {}
 
   async createRecipe(data: CreateRecipeDto, author: User) {
-    const ingredientsData: CreateIngredientDto[] = [...data.newIngredientsData];
-    const subrecipesData: CreateSubrecipeDto[] = [...data.newSubrecipesData];
+    const ingredientsData: CreateIngredientDto[] = data.newIngredientsData ? [...data.newIngredientsData] : [];
+    const subrecipesData: CreateSubrecipeDto[] = data.newSubrecipesData ? [...data.newSubrecipesData] : [];
     const title: string = data.title;
     const recipe = await this.recipeRepository.findOne({
       where: {
@@ -107,10 +107,10 @@ export class RecipesService {
   }
 
   async updateRecipeById(id: string, data: UpdateRecipeDto, author: string) {
-    const newIngredientsData: CreateIngredientDto[] = data.newIngredientsData;
-    const newSubrecipesData: CreateSubrecipeDto[] = data.newSubrecipesData;
-    const updateIngredientsData: UpdateIngredientDto[] = data.updateIngredientsData;
-    const updateSubrecipesData: UpdateSubrecipeDto[] = data.updateSubrecipesData;
+    const newIngredientsData: CreateIngredientDto[] = data.newIngredientsData ? [...data.newIngredientsData] : [];
+    const newSubrecipesData: CreateSubrecipeDto[] = data.newSubrecipesData ? [...data.newSubrecipesData] : [];
+    const updateIngredientsData: UpdateIngredientDto[] = data.updateIngredientsData ? [...data.updateIngredientsData] : [];
+    const updateSubrecipesData: UpdateSubrecipeDto[] = data.updateSubrecipesData ? [...data.updateSubrecipesData] : [];
     const title: string = data.title;
     const category: string = data.category;
     const notes: string = data.notes;
