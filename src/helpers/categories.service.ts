@@ -26,7 +26,11 @@ export class CategoriesService {
   }
 
   async getCategories(): Promise<string[]> {
-    const categories = await this.categoryRepository.find();
+    const categories = await this.categoryRepository.find({
+      order: {
+        name: 'ASC',
+      },
+    });
     const categoriesRO = await Promise.all(categories.map(category => category.name));
 
     return categoriesRO;
