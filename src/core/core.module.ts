@@ -10,16 +10,16 @@ import { UsersService } from './services/users.service';
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
-    // RedisModule.forRootAsync({
-    //   imports: [ConfigModule],
-    //   inject: [ConfigService],
-    //   useFactory: async (configService: ConfigService) => ({
-    //     name: 'blacklist',
-    //     host: configService.redisHost,
-    //     port: configService.redisPort,
-    //     password: configService.redisPassword,
-    //   }),
-    // }),
+    RedisModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        name: 'blacklist',
+        host: configService.redisHost,
+        port: configService.redisPort,
+        password: configService.redisPassword,
+      }),
+    }),
   ],
   providers: [UsersService],
   exports: [UsersService],

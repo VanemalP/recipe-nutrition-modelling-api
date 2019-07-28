@@ -338,7 +338,9 @@ export class RecipesService {
     if (nutrient) {
       if (min && max) {
         queryStr = queryStr.concat(`nutrient=${nutrient}&min=${min}&max=${max}&`);
-        filteredRecipes = recipes.filter(recipe => recipe.nutrition[nutrient].value / 100 * recipe.amount >= min && recipe.nutrition[nutrient].value  / 100 * recipe.amount <= max);
+        filteredRecipes = recipes.filter(
+          recipe => recipe.nutrition[nutrient].value / 100 * recipe.amount >= min && recipe.nutrition[nutrient].value  / 100 * recipe.amount <= max
+        );
       } else if (min) {
         queryStr = queryStr.concat(`nutrient=${nutrient}&min=${min}&`);
         filteredRecipes = recipes.filter(recipe => recipe.nutrition[nutrient].value / 100 * recipe.amount >= min);
