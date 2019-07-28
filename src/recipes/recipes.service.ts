@@ -264,6 +264,9 @@ export class RecipesService {
     }
 
     const deleteRecipe = async () => {
+      recipeToDelete.isDeleted = true;
+      await this.recipeRepository.save(recipeToDelete);
+
       const ingredients = recipeToDelete.ingredients;
       if (ingredients.length > 0) {
         await this.asyncForEach(ingredients, async (ingredient: Ingredient) => {
@@ -284,13 +287,10 @@ export class RecipesService {
 
       const nutrition = recipeToDelete.nutrition;
       await this.nutritionService.deleteNutrition(nutrition.id);
-
-      recipeToDelete.isDeleted = true;
-
-      await this.recipeRepository.save(recipeToDelete);
     };
 
     deleteRecipe();
+
     return { message: 'Recipe successfully deleted' };
   }
 
