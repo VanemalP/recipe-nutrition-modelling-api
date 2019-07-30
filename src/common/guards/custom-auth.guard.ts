@@ -24,10 +24,10 @@ export class AuthGuardWithBlackisting extends AuthGuard('jwt') implements CanAct
       throw new UnauthorizedException();
     }
 
-    const isTokenBlacklisted = await this.authService.isTokenBlacklisted(token);
-    if (isTokenBlacklisted) {
-      throw new UnauthorizedException();
-    }
+    // const isTokenBlacklisted = await this.authService.isTokenBlacklisted(token);
+    // if (isTokenBlacklisted) {
+    //   throw new UnauthorizedException();
+    // }
 
     return true;
   }

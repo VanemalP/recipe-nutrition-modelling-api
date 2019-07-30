@@ -23,7 +23,7 @@ Final Project Assignment for Telerik Academy Aplpha with JavaScript - Design and
 
 ### Stack
 
-- Database - MariaDB and Redis
+- Database - MariaDB
 - REST API - NestJS
 
 ----------
@@ -57,10 +57,6 @@ Create a new MariaDB database with the name `recipes_db` (or the name you specif
 MariaDb database settings are in ormconfig.json
 
 Start local MariaDB server and create new database 'recipes_db'
-
-### Redis
-
-Start local Redis server
 
 ----------
 
