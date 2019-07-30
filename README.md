@@ -34,7 +34,7 @@ Final Project Assignment for Telerik Academy Aplpha with JavaScript - Design and
 
 Clone the repository
 
-    git clone https://gitlab.com/recipe-nutrition-calculator/api.git
+    git clone https://gitlab.com/recipe-nutrition-modelling/api.git
 
 Switch to the repo folder
 
@@ -56,7 +56,7 @@ Create a new MariaDB database with the name `recipes_db` (or the name you specif
 
 MariaDb database settings are in ormconfig.json
 
-Start local MariaDB server and create new database 'recipes_db'
+Start local MariaDB server and create new database 'recipes_db'. Run initial seed with `npm run seed` (it may take a few minutes)
 
 ----------
 
