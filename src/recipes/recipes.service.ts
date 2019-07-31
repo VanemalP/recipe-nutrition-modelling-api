@@ -44,6 +44,8 @@ export class RecipesService {
     const recipe = await this.recipeRepository.findOne({
       where: {
         title,
+        author,
+        isDeleted: false,
       },
     });
     if (recipe) {
@@ -122,6 +124,16 @@ export class RecipesService {
     }
 
     if (title) {
+      const recipe = await this.recipeRepository.findOne({
+        where: {
+          title,
+          author,
+          isDeleted: false,
+        },
+      });
+      if (recipe) {
+        throw new RecipeBadRequest('Recipe with this title already exists');
+      }
       recipeToUpdate.title = title;
     }
     if (category) {
@@ -339,7 +351,7 @@ export class RecipesService {
       if (min && max) {
         queryStr = queryStr.concat(`nutrient=${nutrient}&min=${min}&max=${max}&`);
         filteredRecipes = recipes.filter(
-          recipe => recipe.nutrition[nutrient].value / 100 * recipe.amount >= min && recipe.nutrition[nutrient].value  / 100 * recipe.amount <= max
+          recipe => recipe.nutrition[nutrient].value / 100 * recipe.amount >= min && recipe.nutrition[nutrient].value  / 100 * recipe.amount <= max,
         );
       } else if (min) {
         queryStr = queryStr.concat(`nutrient=${nutrient}&min=${min}&`);
@@ -352,7 +364,7 @@ export class RecipesService {
 
     queryStr = queryStr.concat(`orderBy=${orderBy}&order=${order}`);
 
-    // Filter precipes by nutrient value per 100g
+    // Filter recipes by nutrient value per 100g
 
     // let filteredRecipes: Recipe[] = recipes;
     // if (nutrient) {
