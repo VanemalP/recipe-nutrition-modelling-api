@@ -93,7 +93,7 @@ export class RecipesService {
       nutrientNames.forEach((nutrientName: NutrientsEnum) => {
         acc.nutrients[nutrientName].value += curr.nutrients[nutrientName].value;
       });
-      acc.weight += curr.weight;
+      acc.weight += +curr.weight.toFixed(2);
 
       return acc;
     });
@@ -195,7 +195,7 @@ export class RecipesService {
         nutrientNames.forEach((nutrientName: NutrientsEnum) => {
           acc.nutrients[nutrientName].value += curr.nutrients[nutrientName].value;
         });
-        acc.weight += curr.weight;
+        acc.weight += +curr.weight.toFixed(2);
 
         return acc;
       });
