@@ -36,7 +36,7 @@
       "@types/mysql": "^2.15.6",
       "bcrypt": "^3.0.6",
       "class-transformer": "^0.2.2",
-      "class-validator": "^0.9.1",
+      "class-validator": "^0.14.0",
       "cors": "^2.8.5",
       "dotenv": "^8.0.0",
       "helmet": "^3.18.0",
